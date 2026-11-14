@@ -1,7 +1,7 @@
 {
-  "name": "Term Binder",
-  "short_name": "Term Binder",
-  "description": "Syllabus and working notebook for the fall term.",
+  "name": "Operating Plan",
+  "short_name": "Operating Plan",
+  "description": "Weekly counts, monthly closes and a slip log for the job search.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
