@@ -29,7 +29,7 @@ button,a,input,textarea{touch-action:manipulation}
   --paper:#f2f3f7; --card:#ffffff; --ink:#1b2030; --mute:#586074; --line:#dcdfe8; --soft:#e9ebf2;
   --good:#1f8a5b; --warn:#a85f00; --bad:#c62828;
   --apps:#3f51b5; --outreach:#00897b; --nespresso:#e64a19; --portfolio:#2e9e6b; --deck:#c98a00;
-  --product:#8e24aa; --publication:#ad1457; --skills:#0288d1; --painting:#d9567f; --tier2:#7e57c2; --plan:#546e7a;
+  --product:#8e24aa; --publication:#ad1457; --skills:#0288d1; --painting:#d9567f; --lab:#6d4c41; --tier2:#7e57c2; --plan:#546e7a;
   --display:'Bricolage Grotesque','Helvetica Neue',Arial,sans-serif;
   --body:'Hanken Grotesk','Helvetica Neue',Arial,sans-serif;
   --mono:'Neue Haas Grotesk Text Pro','Neue Haas Grotesk Text','Neue Haas Grotesk Display Pro','Neue Haas Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;
@@ -39,7 +39,7 @@ button,a,input,textarea{touch-action:manipulation}
     --paper:#12141a; --card:#1a1d27; --ink:#e9ebf2; --mute:#9aa1b4; --line:#2b3040; --soft:#232736;
     --good:#4cc38a; --warn:#e5a63c; --bad:#ff7b7b;
     --apps:#8c9eff; --outreach:#4db6ac; --nespresso:#ff8a65; --portfolio:#5fd3a0; --deck:#ffca28;
-    --product:#ce93d8; --publication:#f48fb1; --skills:#4fc3f7; --painting:#f48fb1; --tier2:#b39ddb; --plan:#90a4ae;
+    --product:#ce93d8; --publication:#f48fb1; --skills:#4fc3f7; --painting:#f48fb1; --lab:#bcaaa4; --tier2:#b39ddb; --plan:#90a4ae;
     color-scheme:dark;
   }
 }
@@ -47,7 +47,7 @@ button,a,input,textarea{touch-action:manipulation}
   --paper:#12141a; --card:#1a1d27; --ink:#e9ebf2; --mute:#9aa1b4; --line:#2b3040; --soft:#232736;
   --good:#4cc38a; --warn:#e5a63c; --bad:#ff7b7b;
   --apps:#8c9eff; --outreach:#4db6ac; --nespresso:#ff8a65; --portfolio:#5fd3a0; --deck:#ffca28;
-  --product:#ce93d8; --publication:#f48fb1; --skills:#4fc3f7; --painting:#f48fb1; --tier2:#b39ddb; --plan:#90a4ae;
+  --product:#ce93d8; --publication:#f48fb1; --skills:#4fc3f7; --painting:#f48fb1; --lab:#bcaaa4; --tier2:#b39ddb; --plan:#90a4ae;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -67,7 +67,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 /* track hues */
 .t-apps{--c:var(--apps);--m:68%}.t-outreach{--c:var(--outreach);--m:66%}.t-nespresso{--c:var(--nespresso);--m:60%}
 .t-portfolio{--c:var(--portfolio);--m:62%}.t-deck{--c:var(--deck);--m:46%}.t-product{--c:var(--product);--m:68%}
-.t-publication{--c:var(--publication);--m:66%}.t-skills{--c:var(--skills);--m:62%}.t-painting{--c:var(--painting);--m:62%}
+.t-publication{--c:var(--publication);--m:66%}.t-skills{--c:var(--skills);--m:62%}.t-painting{--c:var(--painting);--m:62%}.t-lab{--c:var(--lab);--m:62%}
 .t-tier2{--c:var(--tier2);--m:66%}.t-plan{--c:var(--plan);--m:70%}.t-none{--c:var(--mute);--m:70%}
 .tint{background:color-mix(in srgb,var(--c) 14%,var(--card));color:color-mix(in srgb,var(--c) var(--m),var(--ink));border:1px solid color-mix(in srgb,var(--c) 34%,transparent)}
 .sw{display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--c);flex:none}
@@ -311,9 +311,13 @@ var TRACKS=[
  {key:'publication',name:'Publication',tier:2,type:'publication',unit:'sessions',cap:10,hours:'from the pool',
   blurb:'Typesetting and illustration. No outside deadline, so the closes are self-set.',
   how:['Typesetting and illustration share the session. Alternate if one is stuck.','Draws on the Tier 2 pool.']},
- {key:'skills',name:'Skills lab + briefs',tier:2,type:'skills',unit:'sessions',cap:10,hours:'from the pool',
-  blurb:'Skills lab and creative briefs, combined. One small finished thing at a time.',
-  how:['Alternate: one session learn or make something small (Figma, Blender, creative code), the next a creative brief.','Cap each at 2.5 hours. Finished-ugly counts, paper is fine.','The Nov close asks for 1 small finished thing shown to a real person. Each later close asks for 3 more.']},
+ {key:'skills',name:'Briefs + posts',tier:2,type:'skills',unit:'sessions',cap:10,hours:'from the pool',
+  blurb:'Skills lab, creative briefs and social posts in one loop. Make one small thing, then post it. The post is how it gets shown to a real person.',
+  how:['Each piece starts as a brief (yours, or a prompt like "a matchbook for an imaginary bar"), gets made, then gets posted on LinkedIn the same week.','Mix: about 3 of every 4 pieces are interaction work (creative code, small prototypes), 1 is a physical brief you photograph.','Cap each piece at 2.5 hours. Finished-ugly counts, paper is fine.','A post is about 100 words: the brief, what you tried, what you cut. A short loop or a photo goes with it.','Keep the idea bank (10 ideas, tagged interaction or physical) in the Notebook on this page.']},
+
+ {key:'lab',name:'Skills lab',tier:2,type:'lab',unit:'sessions',full:[0,1,1,1,1,1,1,1,1,1,1,1],floor:1,cap:7,hours:'about 1.5 h',protected:true,
+  blurb:'Time to get better at the tools, with no output expected. Protected, so briefs and posts cannot eat it.',
+  how:['One protected session a week of about 1.5 hours. Learn or practice one skill (Figma, Blender, creative code). No output needed.','This is practice time. Pieces for posts get made in Briefs + posts, using what you practice here.','It keeps its place when everything else shrinks, like painting.']},
  {key:'painting',name:'Painting',tier:2,type:'painting',unit:'sessions',full:[0,1,1,1,1,1,1,1,1,1,1,1],floor:1,cap:7,hours:'about 1.5 h',protected:true,
   blurb:'Not career oriented, and that is the point. One protected session a week that counts toward the floor, even in a floor week.',
   how:['One session of about 1.5 hours.','No deliverables, just the sessions. It keeps its place when everything else shrinks.']}
@@ -344,6 +348,7 @@ var MILESTONES=[
  {id:'a_c2',track:'apps',date:CLOSES[1],hard:1,auto:1,ci:1},
  {id:'a_c3',track:'apps',date:CLOSES[2],hard:1,auto:1,ci:2},
  {id:'o_cp1',track:'outreach',date:'2026-11-20',title:'Dream-company list: 10 companies with 5 to 8 people mapped at each',detail:'Feeds the weekly outreach count.'},
+ {id:'o_cp2',track:'outreach',date:'2026-11-24',title:'Reply check: replies counted by channel and by who you wrote to',detail:'Mark companies as Replied in the Pipeline below. If the first 50 or so messages got fewer than 3 replies, change one thing: channel, who, or the ask.'},
  {id:'o_c1',track:'outreach',date:CLOSES[0],hard:1,auto:1,ci:0},
  {id:'o_c2',track:'outreach',date:CLOSES[1],hard:1,auto:1,ci:1},
  {id:'o_c3',track:'outreach',date:CLOSES[2],hard:1,auto:1,ci:2},
@@ -367,9 +372,14 @@ var MILESTONES=[
  {id:'b_c1',track:'publication',date:CLOSES[0],hard:1,title:'Layout started: structure and first pages laid out',detail:'Self-set, no outside deadline.'},
  {id:'b_c2',track:'publication',date:CLOSES[1],hard:1,title:'Layout done',detail:'Self-set, no outside deadline.'},
  {id:'b_c3',track:'publication',date:CLOSES[2],hard:1,title:'Illustrations done',detail:'Self-set, no outside deadline.'},
- {id:'k_c1',track:'skills',date:CLOSES[0],hard:1,title:'1 small finished thing shown to a real person (a skill piece or a brief)'},
- {id:'k_c2',track:'skills',date:CLOSES[1],hard:1,title:'3 more small finished things shown'},
- {id:'k_c3',track:'skills',date:CLOSES[2],hard:1,title:'3 more small finished things shown'},
+ {id:'k_cp1',track:'skills',date:'2026-11-20',title:'Post idea bank: 10 ideas, each tagged interaction or physical',detail:'About 7 interaction and 3 physical. One pool session, then keep them in the Notebook on this page.'},
+ {id:'k_c1',track:'skills',date:CLOSES[0],hard:1,title:'Idea bank done and the first piece made, ready to post'},
+ {id:'k_c2',track:'skills',date:CLOSES[1],hard:1,title:'3 posts live in total (interaction pieces plus a physical brief)'},
+ {id:'k_c3',track:'skills',date:CLOSES[2],hard:1,title:'6 posts live in total, with a note on which ones got a response'},
+ {id:'l_cp1',track:'lab',date:'2026-11-20',title:'Pick the 1 or 2 skills to focus on, and what "better" looks like for each',detail:'Your first lab session on Mon Nov 16 is a good place to decide this.'},
+ {id:'l_c1',track:'lab',date:CLOSES[0],hard:1,auto:1,ci:0},
+ {id:'l_c2',track:'lab',date:CLOSES[1],hard:1,auto:1,ci:1},
+ {id:'l_c3',track:'lab',date:CLOSES[2],hard:1,auto:1,ci:2},
  {id:'g_c1',track:'painting',date:CLOSES[0],hard:1,auto:1,ci:0},
  {id:'g_c2',track:'painting',date:CLOSES[1],hard:1,auto:1,ci:1},
  {id:'g_c3',track:'painting',date:CLOSES[2],hard:1,auto:1,ci:2}
@@ -377,7 +387,7 @@ var MILESTONES=[
 var MBY={};MILESTONES.forEach(function(m){MBY[m.id]=m;});
 function mTitle(m){
   if(S.scope[m.id])return S.scope[m.id];
-  if(m.auto){var t=TBY[m.track];var verb=m.track==='apps'?'applications submitted':m.track==='outreach'?'messages sent':'painting sessions';return cumTarget(m.track,closeThrough(m.ci))+' '+verb+' since Nov 13';}
+  if(m.auto){var t=TBY[m.track];var verb=m.track==='apps'?'applications submitted':m.track==='outreach'?'messages sent':m.track==='lab'?'skills lab sessions':'painting sessions';return cumTarget(m.track,closeThrough(m.ci))+' '+verb+' since Nov 13';}
   return m.title;
 }
 function curDate(m){return S.moved[m.id]||m.date;}
@@ -388,15 +398,16 @@ function isDropped(m){return !!S.dropped[m.id];}
 var BLOCKS=[
  {dow:1,type:'outreach',title:'Outreach',s:mins(9,30),e:mins(11,30),note:'8 to 10 new messages. Replies count here too.'},
  {dow:1,type:'nespresso',title:'Nespresso',s:mins(13),e:mins(15),note:'Leave a two-line "where I left off" note.'},
+ {dow:1,type:'lab',title:'Skills lab',s:mins(15,15),e:mins(16,45),note:'Protected practice time. No output needed.'},
  {dow:2,type:'apps',title:'Applications',s:mins(9,30),e:mins(12),note:'Resume test, then submit. Outreach must be 2+ days old.'},
  {dow:2,type:'portfolio',title:'Portfolio edits',s:mins(13),e:mins(15,30),note:'One case study at a time.'},
  {dow:3,type:'outreach',title:'Outreach',s:mins(9,30),e:mins(11,30),note:'8 to 10 new messages. Replies count here too.'},
  {dow:3,type:'nespresso',title:'Nespresso',s:mins(13),e:mins(15),note:'Leave a two-line "where I left off" note.'},
- {dow:3,type:'tier2',title:'Tier 2 session',s:mins(15,15),e:mins(16,45),note:'Product, publication or skills + brief. Your pick.'},
+ {dow:3,type:'tier2',title:'Tier 2 session',s:mins(15,15),e:mins(16,45),note:'Product, publication or brief + post. Your pick.'},
  {dow:4,type:'apps',title:'Applications',s:mins(9,30),e:mins(12),note:'Resume test, then submit.'},
  {dow:4,type:'deck',title:'Deck',s:mins(13),e:mins(15),note:'Research, then build, then test.'},
- {dow:4,type:'tier2',title:'Tier 2 session',s:mins(15),e:mins(16,30),note:'Product, publication or skills + brief. Your pick.'},
- {dow:5,type:'tier2',title:'Tier 2 session',s:mins(9,30),e:mins(11),note:'Product, publication or skills + brief. Your pick.'},
+ {dow:4,type:'tier2',title:'Tier 2 session',s:mins(15),e:mins(16,30),note:'Product, publication or brief + post. Your pick.'},
+ {dow:5,type:'tier2',title:'Tier 2 session',s:mins(9,30),e:mins(11),note:'Product, publication or brief + post. Your pick.'},
  {dow:5,type:'outreach',title:'Outreach top-up',s:mins(11,15),e:mins(12),note:'Close the gap on the week\'s 50, and answer replies.'},
  {dow:5,type:'painting',title:'Painting',s:mins(13),e:mins(14,30),note:'Protected.'},
  {dow:5,type:'plan',title:'Friday close',s:mins(16),e:mins(16,20),note:'Log the week, copy the scorecard, deal with any slips.'},
@@ -458,7 +469,7 @@ function backupBanner(){
 }
 
 /* ---------- week maths ---------- */
-var FLOORS={apps:4,outreach:25,nespresso:1,portfolio:0,deck:0,painting:1};
+var FLOORS={apps:4,outreach:25,nespresso:1,portfolio:0,deck:0,painting:1,lab:1};
 function weekResult(i){
   var m=modeOf(i),hit=true,floor=true,miss=[];
   if(isLaunch(i))return {k:'',t:'Launch week, not scored',floor:true,hit:false,miss:[],mode:m,launch:true};
@@ -468,6 +479,7 @@ function weekResult(i){
     if(have<fl)floor=false;
   });
   if(n(i,'painting')<1){hit=false;floor=false;miss.push('Painting 1 more');}
+  if(n(i,'lab')<1){hit=false;floor=false;miss.push('Skills lab 1 more');}
   var pt=poolTarget(i),pn=poolN(i);
   if(pn<pt){hit=false;miss.push('Tier 2 pool '+(pt-pn)+' more');}
   var k,t;
@@ -565,7 +577,7 @@ function scorecard(i){
   var pool=POOL.filter(function(k){return n(i,k)>0;}).map(function(k){return TBY[k].name.split(' ')[0]+' '+n(i,k);}).join(', ');
   var lines=['Week of '+wlabel(i)+' ('+(isLaunch(i)?'launch':m)+' week)',
    'Priority 1: '+P1.map(f).join(', '),
-   'Priority 2: '+poolN(i)+'/'+poolTarget(i)+' pool sessions'+(pool?' ('+pool+')':'')+', Painting '+n(i,'painting')+'/1',
+   'Priority 2: '+poolN(i)+'/'+poolTarget(i)+' pool sessions'+(pool?' ('+pool+')':'')+', Painting '+n(i,'painting')+'/1, Skills lab '+n(i,'lab')+'/1',
    'Result: '+r.t+(r.miss.length&&!r.hit?' (short: '+r.miss.join(', ')+')':''),
    'Floor streak: '+streak()+' week'+(streak()===1?'':'s')];
   var nc=nextClose();
@@ -591,7 +603,7 @@ function viewBoard(){
 
   /* verdict */
   if(isLaunch(i)&&started){html+='<div class="verdict"><span class="label">Launch week</span><div class="v">Counting from Fri Nov 13</div><span class="muted">Outreach 10 is the one target this short week. Everything else starts Mon Nov 16, and anything you log now still adds to the month totals. Not scored.</span></div>';}
-  else if(!started){html+='<div class="verdict"><span class="label">Not started</span><div class="v">Starts '+dlong(ws)+'</div><span class="muted">'+(m==='floor'?'Floor week: Priority 1 floors plus painting.':'Full week: every target, plus 3 Tier 2 pool sessions.')+'</span></div>';}
+  else if(!started){html+='<div class="verdict"><span class="label">Not started</span><div class="v">Starts '+dlong(ws)+'</div><span class="muted">'+(m==='floor'?'Floor week: Priority 1 floors plus painting and skills lab.':'Full week: every target, plus 3 Tier 2 pool sessions.')+'</span></div>';}
   else{var vk=r.k,vt=r.t;if(!over&&!r.hit){vk=r.floor?'ok':'';vt=r.floor?'Floor held so far':'Floor not met yet';}
     html+='<div class="verdict '+vk+'"><span class="label">'+(over?'Week result':'Right now')+'</span><div class="v">'+esc(vt)+'</div><span class="muted">'+(r.hit?'Everything the week asked for is in.':(r.miss.length?'Short: '+esc(r.miss.join(', '))+'.':''))+(r.hit||over?'':' The week is still open.')+'</span></div>';}
 
@@ -609,6 +621,7 @@ function viewBoard(){
   P1.forEach(function(k){html+=sprintRow(k,i);});
   html+='<div class="sgrp" style="margin-top:16px"><h3>Priority 2</h3><span class="muted" style="font-size:12.5px">Pool: '+poolN(i)+' of '+poolTarget(i)+' sessions, split any way you like</span></div>';
   POOL.forEach(function(k){html+=sprintRow(k,i,{noTarget:true,hint:TBY[k].name==='New product'?'Close to Priority 1, borrows time when the week allows':TBY[k].hours});});
+  html+=sprintRow('lab',i,{hint:'Protected practice time, counts toward the floor'});
   html+=sprintRow('painting',i,{hint:'Protected, counts toward the floor'});
   html+='</div></div>';
 
@@ -644,7 +657,7 @@ function viewCloses(){
 }
 
 function viewCalendar(){
-  var html='<div class="panel"><span class="label">Google Calendar</span><h2>The week is a bank of movable blocks</h2><p class="muted" style="margin:8px 0 12px;max-width:64ch">These are the default placements for a full week, about 24 hours. Slide any block to any day that week, or skip it. Only the counts on the board and the month closes are tracked, not where the block sat.</p>';
+  var html='<div class="panel"><span class="label">Google Calendar</span><h2>The week is a bank of movable blocks</h2><p class="muted" style="margin:8px 0 12px;max-width:64ch">These are the default placements for a full week, about 26 hours. Slide any block to any day that week, or skip it. Only the counts on the board and the month closes are tracked, not where the block sat.</p>';
   html+='<div class="note">'+(CAL_SYNCED?'These blocks are in your calendar'+(CAL_EMAIL?' ('+esc(CAL_EMAIL)+')':'')+', colored by track.':'Your calendar may still show the old term blocks. They get replaced with these as a separate step.')+'</div></div>';
   html+='<div class="panel"><span class="label">A default full week, Monday to Friday</span><div class="weekgrid">';
   for(var d=1;d<=5;d++){
@@ -652,7 +665,7 @@ function viewCalendar(){
     html+='<section class="day"><div class="dh"><span class="dow">'+DOW[d]+'</span></div><div class="items">'+bl.map(function(b){return '<div class="blk tint t-'+b.type+'" title="'+esc(b.note)+'"><span class="time">'+trange(b.s,b.e)+'</span><strong><span class="sw"></span>'+esc(b.title)+'</strong><small>'+esc(b.note)+'</small></div>';}).join('')+'</div></section>';
   }
   html+='</div><p class="muted" style="margin-top:12px;font-size:13.5px">Plus the Sunday plan at 5:00 PM for 15 minutes. Workouts and appointments stay as they are, plan around them.</p></div>';
-  var rows=[['Applications','apps','5 h','Tue and Thu mornings'],['Outreach','outreach','4.75 h','Mon and Wed mornings, plus a short Fri top-up'],['Nespresso','nespresso','4 h','Mon and Wed afternoons'],['Portfolio edits','portfolio','2.5 h','Tue afternoon'],['Deck','deck','2 h','Thu afternoon'],['Tier 2 pool','tier2','4.5 h','Three 1.5 h sessions'],['Painting','painting','1.5 h','Fri afternoon']];
+  var rows=[['Applications','apps','5 h','Tue and Thu mornings'],['Outreach','outreach','4.75 h','Mon and Wed mornings, plus a short Fri top-up'],['Nespresso','nespresso','4 h','Mon and Wed afternoons'],['Portfolio edits','portfolio','2.5 h','Tue afternoon'],['Deck','deck','2 h','Thu afternoon'],['Tier 2 pool','tier2','4.5 h','Three 1.5 h sessions'],['Skills lab','lab','1.5 h','Mon afternoon'],['Painting','painting','1.5 h','Fri afternoon']];
   html+='<div class="panel"><span class="label">Hours by track, full week</span><div class="scroll"><table class="table"><thead><tr><th>Track</th><th>Hours</th><th>Default spot</th></tr></thead><tbody>'+rows.map(function(r){return '<tr><td><span class="blk tint t-'+r[1]+'" style="display:inline-flex"><strong><span class="sw"></span>'+r[0]+'</strong></span></td><td class="mono">'+r[2]+'</td><td>'+r[3]+'</td></tr>';}).join('')+'</tbody></table></div></div>';
   html+='<div class="panel"><span class="label">Color key</span><div class="legend">'+TRACKS.map(function(t){return '<div class="tint t-'+t.type+'"><span class="sw" style="margin-top:6px"></span><div><strong>'+esc(t.name)+'</strong><small>Priority '+t.tier+(t.protected?', protected':'')+'</small></div></div>';}).join('')+'<div class="tint t-tier2"><span class="sw" style="margin-top:6px"></span><div><strong>Tier 2 session</strong><small>Product, publication or skills + brief</small></div></div><div class="tint t-plan"><span class="sw" style="margin-top:6px"></span><div><strong>Plan and close</strong><small>Sunday plan, Friday close</small></div></div></div></div>';
   return html;
@@ -663,8 +676,8 @@ function viewRules(){
    '<div><h3>Weeks are sprints</h3><p>Each week has counts, not fixed times. Log them on the board. Move the blocks wherever the day allows.</p></div>'+
    '<div><h3>Months are the contract</h3><p>The last working day of each month has one deliverable per track. These are the hard dates.</p></div>'+
    '<div><h3>Slips are allowed, and visible</h3><p>Move a close once with a reason. The second move cuts scope. After that, drop it or hand it off.</p></div></div></div>';
-  html+='<div class="cols"><div class="panel"><span class="label">Full week or floor week</span><h3 style="margin-bottom:10px">Pick on Sunday, 15 minutes</h3><ul class="ul"><li><b>Full week:</b> every Priority 1 target, 3 Tier 2 pool sessions, painting.</li><li><b>Floor week:</b> 4 applications, 25 messages, 1 Nespresso session, painting. Everything else pauses without penalty.</li><li>Thanksgiving week and the two holiday weeks start as floor weeks. Switch any week on the board.</li><li>Week 1 (Nov 13 to 15) is a launch week: only outreach has a target, and it is not scored.</li><li>Choosing floor lowers that close\'s automatic targets, and it is counted openly in "floor weeks used".</li></ul></div>';
-  html+='<div class="panel"><span class="label">Tier 2 pool</span><h3 style="margin-bottom:10px">Three sessions, split as the week allows</h3><ul class="ul"><li>New product, publication and skills + brief share the pool. Put two on the one that matters most that week.</li><li>Month closes keep each from starving.</li><li>Pool sessions never make up for a missed Priority 1 count.</li><li>Painting sits outside the pool and counts toward the floor.</li></ul></div>';
+  html+='<div class="cols"><div class="panel"><span class="label">Full week or floor week</span><h3 style="margin-bottom:10px">Pick on Sunday, 15 minutes</h3><ul class="ul"><li><b>Full week:</b> every Priority 1 target, 3 Tier 2 pool sessions, painting, skills lab.</li><li><b>Floor week:</b> 4 applications, 25 messages, 1 Nespresso session, painting, skills lab. Everything else pauses without penalty.</li><li>Thanksgiving week and the two holiday weeks start as floor weeks. Switch any week on the board.</li><li>Week 1 (Nov 13 to 15) is a launch week: only outreach has a target, and it is not scored.</li><li>Choosing floor lowers that close\'s automatic targets, and it is counted openly in "floor weeks used".</li></ul></div>';
+  html+='<div class="panel"><span class="label">Tier 2 pool</span><h3 style="margin-bottom:10px">Three sessions, split as the week allows</h3><ul class="ul"><li>New product, publication and brief + post share the pool. Put two on the one that matters most that week.</li><li>Month closes keep each from starving.</li><li>Pool sessions never make up for a missed Priority 1 count.</li><li>Painting and skills lab sit outside the pool and count toward the floor.</li></ul></div>';
   html+='<div class="panel"><span class="label">Friday close, 20 minutes</span><h3 style="margin-bottom:10px">Log, check, copy</h3><ul class="ul"><li>Log the week\'s counts on the board.</li><li>Check Closes for anything inside 7 days.</li><li>Copy the scorecard if you want a witness. Skip it if not.</li><li>Back up from the Backup tab if you use the phone app.</li></ul></div></div>';
   html+='<div class="cols"><div class="panel"><span class="label">Fixed edges</span><ul class="ul"><li>Outreach before applying. Never Easy Apply, always the company site.</li><li>Application cap is 15 a week. Outreach cap is 10 people a day.</li><li>One close per track per month, last working day.</li></ul></div>';
   html+='<div class="panel"><span class="label">Not included yet</span><p class="muted">Locking Tier 2 until Tier 1 is met, and a real reward or cost, are left out on purpose. Add them after two or three weeks of data if the slip log alone is not enough pressure.</p></div></div>';
@@ -680,7 +693,7 @@ function viewTrack(key){
   html+='<div class="cols t-'+t.type+'"><div class="stack">';
   html+='<div class="panel"><span class="label">Cadence</span><ul class="ul">';
   if(t.tier===1||t.protected){
-    html+='<li>Full week: '+(Array.isArray(t.full)&&t.floor===0?'1 session in active weeks, none otherwise':(Array.isArray(t.full)?t.full[1]:t.full)+' '+t.unit)+'. Floor week: '+t.floor+' '+t.unit+'.</li>';
+    html+='<li>Full week: '+(Array.isArray(t.full)&&t.floor===0?'1 session in active weeks, none otherwise':(function(v,u){return v+' '+(u==='sessions'&&v===1?'session':u);})(Array.isArray(t.full)?t.full[1]:t.full,t.unit))+'. Floor week: '+(function(v,u){return v+' '+(u==='sessions'&&v===1?'session':u);})(t.floor,t.unit)+'.</li>';
   }else html+='<li>Draws on the Tier 2 pool: 3 sessions a week in a full week, 0 in a floor week.</li>';
   html+='<li>Time: '+esc(t.hours)+' a week.</li></ul><span class="label" style="display:block;margin:16px 0 8px">How it runs</span><ul class="ul">'+t.how.map(function(w){return '<li>'+esc(w)+'</li>';}).join('')+'</ul></div>';
   html+='<div class="panel"><span class="label">Deliverables</span><div class="list">'+items.map(function(m){return dRow(m);}).join('')+'</div>';
@@ -695,7 +708,7 @@ function viewTrack(key){
   html+='</div><p class="muted" style="font-size:12.5px;margin-top:8px">Dashed border: floor week. Log counts on the Board.</p></div>';
   html+='</div><div class="stack">';
   html+='<div class="panel"><span class="label">Where I left off'+(left.at?', '+esc(left.at):'')+'</span><textarea class="lined" id="left-'+key+'" data-note="left" data-p="'+key+'" rows="2" placeholder="Two lines for the next session" style="min-height:62px">'+esc(left.text)+'</textarea></div>';
-  html+='<div class="panel"><span class="label">Notebook</span><textarea class="lined" id="notes-'+key+'" data-note="notes" data-p="'+key+'" rows="9" placeholder="Notes, decisions, things to try">'+esc(S.notes[key]||'')+'</textarea></div>';
+  html+='<div class="panel"><span class="label">Notebook</span><textarea class="lined" id="notes-'+key+'" data-note="notes" data-p="'+key+'" rows="9" placeholder="'+(key==='skills'?'Idea bank: 10 post ideas, each tagged interaction or physical':'Notes, decisions, things to try')+'">'+esc(S.notes[key]||'')+'</textarea></div>';
   html+='<div class="panel"><span class="label">Working folder links</span><div>'+(links.length?links.map(function(l,i){return '<div class="linkrow"><a href="'+esc(l.u)+'" target="_blank" rel="noopener">'+esc(l.l||l.u)+'</a><button class="x" data-a="dellink" data-p="'+key+'" data-i="'+i+'" aria-label="Remove link">&times;</button></div>';}).join(''):'<div class="empty">No links yet.</div>')+'</div><form class="form" data-form="link" data-p="'+key+'" style="margin-top:10px"><input type="text" name="l" placeholder="Label" aria-label="Label"><input type="url" name="u" placeholder="https://" aria-label="Link" required style="flex:1 1 160px;width:auto"><button class="btn" type="submit">Add</button></form></div>';
   if(key==='apps'||key==='outreach'){
     html+='<div class="panel"><span class="label">Pipeline</span><form class="form" data-form="pipe"><input type="text" name="c" placeholder="Company" aria-label="Company" required><button class="btn" type="submit">Add</button></form><div class="list" style="margin-top:10px">'+(S.pipeline.length?S.pipeline.map(function(r,i){return '<div class="item"><span class="ph"></span><div><div class="t">'+esc(r.c)+'</div></div><div class="when"><button class="chipbtn" data-a="pipecycle" data-i="'+i+'">'+esc(PIPE[r.s||0])+'</button> <button class="x" data-a="pipedel" data-i="'+i+'" aria-label="Remove">&times;</button></div></div>';}).join(''):'<div class="empty">No companies yet.</div>')+'</div></div>';
@@ -703,7 +716,7 @@ function viewTrack(key){
   html+='</div></div>';
   return html;
 }
-var PIPE=['Researching','Outreach sent','Applied','Follow up'];
+var PIPE=['Researching','Outreach sent','Applied','Follow up','Replied'];
 
 var armed=false,backupMsg='';
 function viewBackup(){
