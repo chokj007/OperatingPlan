@@ -242,6 +242,19 @@ textarea{resize:vertical;min-height:90px;line-height:1.55}
   .verdict .v{font-size:24px}
 }
 @media (prefers-reduced-motion:no-preference){ .tabs a,.step,.chipbtn{transition:background .15s} .meter i{transition:width .25s} }
+
+/* themed-day additions */
+:root{--aw:#6f8f2f}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--aw:#aed581}}
+:root[data-theme="dark"]{--aw:#aed581}
+.t-aw{--c:var(--aw);--m:55%}
+.verdict.tint{background:color-mix(in srgb,var(--c) 14%,var(--card));border-color:color-mix(in srgb,var(--c) 34%,transparent);color:color-mix(in srgb,var(--c) var(--m),var(--ink))}
+.verdict.tint .v{color:inherit}
+.verdict.tint .muted{color:inherit;opacity:.85}
+.chipbtn.met{border-color:var(--good)}
+.chipbtn.rest{opacity:.55}
+.chipbtn[aria-pressed="true"].rest{opacity:1}
+.item .t{overflow-wrap:anywhere}
 </style>
 
 </head>
@@ -249,7 +262,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.55}
 <div class="shell">
   <header class="top">
     <div>
-      <div class="label">Nov 13, 2026 to Jan 31, 2027</div>
+      <div class="label">Nov 24, 2026 to Jan 31, 2027</div>
       <h1>Operating Plan</h1>
       <p class="sub" id="whereami"></p>
     </div>
@@ -258,25 +271,22 @@ textarea{resize:vertical;min-height:90px;line-height:1.55}
     <nav class="tabs" id="tabs" aria-label="Plan sections"></nav>
     <main id="main"></main>
   </div>
-  <div class="foot"><span class="status" id="saved"></span><span class="status">Times are Eastern. Blocks are movable, the counts are the contract.</span></div>
+  <div class="foot"><span class="status" id="saved"></span><span class="status">Days have themes, not clock times. The counts are the contract.</span></div>
 </div>
 
-<script>
-(function(){
+<script>(function(){
 'use strict';
 
 /* ---------- dates ---------- */
-var STANDALONE=true, CAL_EMAIL='', CAL_SYNCED=true;
-var PLAN_START=new Date(2026,10,9), WEEKS=12;
-var LAUNCH=new Date(2026,10,13); /* real start: Fri Nov 13. Week 1 is a short launch week. */
-function isLaunch(i){return i===0;}
-function wlabel(i){return md(i===0?LAUNCH:weekStart(i));}
+var STANDALONE=true;
+var PLAN_START=new Date(2026,10,23), WEEKS=10;      /* weeks run Monday to Sunday, first one starts Mon Nov 23 */
+var LAUNCH=new Date(2026,10,24);                    /* first working day: Tue Nov 24 */
+var DEALER_FROM=new Date(2026,11,7);                /* Fridays open up to dealer's choice from here */
+var HOLIDAYS=['2026-11-26','2026-12-24','2026-12-25','2027-01-01'];
+var OUT_GOAL=10, OUT_MIN=5, OUT_PER_DAY=10, APP_PER_DAY=1, APP_DAY_AIM=3;
 function iso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function parse(s){var p=s.split('-').map(Number);return new Date(p[0],p[1]-1,p[2]);}
 function addDays(d,n){return new Date(d.getFullYear(),d.getMonth(),d.getDate()+n);}
-function mins(h,m){return h*60+(m||0);}
-function tstr(m){var h=Math.floor(m/60),mm=m%60,ap=h>=12?'PM':'AM';var hh=h%12;if(hh===0)hh=12;return hh+':'+String(mm).padStart(2,'0')+' '+ap;}
-function trange(s,e){var a=tstr(s),b=tstr(e);return (a.slice(-2)===b.slice(-2)?a.slice(0,-3):a)+' to '+b;}
 var MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'], DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 function md(d){return MON[d.getMonth()]+' '+d.getDate();}
 function dlong(d){return DOW[d.getDay()]+' '+md(d);}
@@ -286,139 +296,128 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){retur
 function weekStart(i){return addDays(PLAN_START,7*i);}
 function weekOf(d){var i=Math.floor((d-PLAN_START)/(7*864e5));return Math.max(0,Math.min(WEEKS-1,i));}
 function uid(){return Math.random().toString(36).slice(2,9);}
+function weekDays(i){var a=[];for(var k=0;k<7;k++)a.push(addDays(weekStart(i),k));return a;}
+function eligible(d){var w=d.getDay();return w>=1&&w<=5&&d>=LAUNCH&&HOLIDAYS.indexOf(iso(d))<0;}
 
 /* ---------- the plan ---------- */
-/* full: weekly target (number, or one number per week). floor: the smallest week that still counts. */
+var GROUPS=[{k:'main',n:'Main three'},{k:'later',n:'Later'},{k:'choice',n:"Dealer's choice"},{k:'protected',n:'Protected'}];
 var TRACKS=[
- {key:'apps',name:'Applications',tier:1,type:'apps',unit:'submitted',full:[0,8,8,8,8,8,8,8,8,8,8,8],floor:4,cap:30,hours:'about 5 h',
-  blurb:'Apply on the company site, never Easy Apply, and only after outreach has been out for 2 or more days. Hard cap of 15 a week.',
-  how:['Run the resume test first: match score out of 100, top 5 missing keywords, 3 red flags, ATS scan.','Check whether the application has a cover letter or message field before you start.','Full week: 8 submitted. Floor week: 4. Launch week (Nov 13 to 15) has no target, but anything you submit still counts. If these numbers feel off after two weeks, change them together.']},
- {key:'outreach',name:'Outreach',tier:1,type:'outreach',unit:'sent',full:[10,50,50,50,50,50,50,50,50,50,50,50],floor:25,cap:150,hours:'about 4.75 h',
-  blurb:'Start conversations at the companies you want, whether or not a role is posted. Send 10, not 1.',
-  how:['5 to 8 people per company, up to 10 messages a day. Half personalized, half templated.','Lead with real curiosity about the work. Role-neutral notes (product and communications) get more replies than asks.','Full week: 50 messages, which is your 10 a day rule. Floor week: 25. Launch week (Nov 13 to 15): 10.']},
- {key:'nespresso',name:'Nespresso',tier:1,type:'nespresso',unit:'sessions',full:[0,2,2,2,2,2,2,2,2,2,2,2],floor:1,cap:10,hours:'about 4 h',
+ {key:'job',name:'Job search',group:'main',type:'outreach',
+  blurb:'Outreach and applications, counted as one pool of time. Outreach is the daily habit. Applications happen mostly on Job search days.',
+  today:'Outreach minimum first, then applications. Resume test, check for a cover letter field, apply on the company site.',
+  cadence:'Monday and Wednesday, plus the outreach minimum on every working day.',
+  how:['Outreach: about 10 a day. Send the first 5 right after breakfast. On a rough day, 5 still keeps your streak.','Applications: mostly on Job search days, any day works. Resume test first, then check for a cover letter field, apply on the company site (never Easy Apply), and only after outreach has been out 2 or more days.','The week asks for an average of 10 messages and 1 application per working day, so 50 and 5 in a full week. One lost day does not break it.','Hard cap: 15 applications a week and 10 new people a day.']},
+ {key:'nespresso',name:'Nespresso',group:'main',type:'nespresso',
   blurb:'AI-driven flavor-to-visual design system for packaging, heading toward a portfolio case study.',
-  how:['Two sessions a week of about 2 hours each. One in a floor week.','Close every session with a two-line "where I left off" note.','Checkpoint Dec 11: show a first AI-proposed output to a real person.']},
- {key:'portfolio',name:'Portfolio edits',tier:1,type:'portfolio',unit:'sessions',full:[0,1,1,1,1,1,0,0,1,1,1,0],floor:0,cap:10,hours:'about 2.5 h',
-  blurb:'Shorten the case studies one at a time, then add Nespresso when its draft is ready.',
-  how:['Order: Ulama, Alternew, Her Health Club.','Anything you cut goes into that project\'s deck vault folder so the deck can use it.','Weeks 9 to 11 go to building the Nespresso page.']},
- {key:'deck',name:'Deck',tier:1,type:'deck',unit:'sessions',full:[0,1,1,1,1,1,0,0,1,1,1,0],floor:0,cap:10,hours:'about 2 h',
-  blurb:'A short interview deck built from the portfolio cuts. First, work out how you want to tell the story.',
-  how:['Weeks 2 and 3: two research sittings on storytelling methods for portfolio decks and interviews. Pick one method.','Weeks 4 to 6: build v1 from the deck vault folders.','Weeks 9 to 11: test it with a real person and revise.']},
- {key:'product',name:'New product',tier:2,type:'product',unit:'sessions',cap:10,hours:'from the pool',
-  blurb:'Developing a business idea. Sits close to Priority 1, so it can borrow pool sessions when the week allows.',
-  how:['Draws on the Tier 2 pool of 3 sessions a week, split however the week allows.','On a lighter week, put two pool sessions here and let the others wait. The month closes keep the others from starving.']},
- {key:'publication',name:'Publication',tier:2,type:'publication',unit:'sessions',cap:10,hours:'from the pool',
-  blurb:'Typesetting and illustration. No outside deadline, so the closes are self-set.',
-  how:['Typesetting and illustration share the session. Alternate if one is stuck.','Draws on the Tier 2 pool.']},
- {key:'skills',name:'Creative exercise (posts)',tier:2,type:'skills',unit:'sessions',cap:10,hours:'from the pool',
-  blurb:'Creative exercises and the posts that come from them, in one loop. Make one small thing from a brief, then post it. The post is how it gets shown to a real person.',
-  how:['Each piece starts as a brief, gets made, then gets posted on Instagram the same week or the next.','Mix: about 3 of every 4 pieces are interaction work (creative code, small prototypes), 1 is a physical brief you photograph.','Cap each piece at 2.5 hours. Finished-ugly counts, paper is fine.','A post is about 100 words: the brief, what you tried, what you cut. A short loop or a photo goes with it.','Keep the idea bank (10 ideas, tagged interaction or physical) in the Notebook on this page.']},
-
- {key:'lab',name:'Skills lab',tier:2,type:'lab',unit:'sessions',full:[0,1,1,1,1,1,1,1,1,1,1,1],floor:1,cap:7,hours:'about 1.5 h',protected:true,
-  blurb:'Time to get better at the tools, with no output expected. Protected, so creative exercises and posts cannot eat it.',
-  how:['One protected session a week of about 1.5 hours. Learn or practice one skill (Figma, Blender, creative code). No output needed.','This is practice time. Pieces for posts get made in Creative exercise, using what you practice here.','It keeps its place when everything else shrinks, like painting.']},
- {key:'painting',name:'Painting',tier:2,type:'painting',unit:'sessions',full:[0,1,1,1,1,1,1,1,1,1,1,1],floor:1,cap:7,hours:'about 1.5 h',protected:true,
-  blurb:'Not career oriented, and that is the point. One protected session a week that counts toward the floor, even in a floor week.',
-  how:['One session of about 1.5 hours.','No deliverables, just the sessions. It keeps its place when everything else shrinks.']}
+  today:'Spend whatever time you have on this and nothing else. Leave a two-line "where I left off" note before you stop.',
+  cadence:'Tuesday.',
+  how:['One theme day a week. Use whatever time the day gives you.','Close every session with a two-line "where I left off" note.','Closes: research started by Nov 30, research done and architecture sketched by Dec 31, visual system and semi-generator working by Jan 29. The case study itself comes after.']},
+ {key:'portfolio',name:'Portfolio edits',group:'main',type:'portfolio',
+  blurb:'Shorten the case studies one at a time, and learn what people in your role are expected to know.',
+  today:'Edit one case study, or read postings for your role and note what is expected and where your gaps are.',
+  cadence:'Thursday.',
+  how:['One theme day a week. Split it between editing and research however the day feels.','Edit order: Ulama, Alternew, Her Health Club. Anything you cut goes into that project\'s deck vault folder.','Research: read real postings for your role, note what is expected and where your gaps are. Aim for 10 postings by Dec 11.','Nespresso joins the site once its case study is ready.']},
+ {key:'deck',name:'Deck',group:'later',type:'deck',
+  blurb:'A short interview deck built from the portfolio cuts. On hold until the portfolio edits are on the site.',
+  today:'',cadence:'Paused. It joins the rotation once the portfolio changes are on the site.',
+  how:['First step when it restarts: one or two sittings on storytelling methods for portfolio decks and interviews. Pick one method.','Then an outline, then a first version from the deck vault folders.']},
+ {key:'lab',name:'Skills lab',group:'choice',type:'lab',
+  blurb:'Time to get better at the tools, with no output expected.',
+  today:'Learn or practice one skill. No output needed.',cadence:'A dealer\'s choice option.',
+  how:['Pick one skill (Figma, Blender, creative code) and practice it for the sitting.','Pieces for posts get made in Creative exercise, using what you practice here.']},
+ {key:'posts',name:'Creative exercise (posts)',group:'choice',type:'skills',
+  blurb:'Creative exercises and the posts that come from them, in one loop. Make one small thing from a brief, then post it.',
+  today:'Make one small thing from a brief, then post it.',cadence:'A dealer\'s choice option.',
+  how:['Each piece starts as a brief (yours, or a prompt like "a matchbook for an imaginary bar"), gets made, then gets posted on Instagram the same week or the next.','Mix: about 3 of every 4 pieces are interaction work (creative code, small prototypes), 1 is a physical brief you photograph.','Cap each piece at 2.5 hours. Finished-ugly counts, paper is fine.','A post is about 100 words: the brief, what you tried, what you cut. A short loop or a photo goes with it.','Keep the idea bank (10 ideas, tagged interaction or physical) in the Notebook on this page.']},
+ {key:'publication',name:'Publication',group:'choice',type:'publication',
+  blurb:'Typesetting and illustration. No outside deadline.',
+  today:'Typesetting or illustration, whichever is not stuck.',cadence:'A dealer\'s choice option.',
+  how:['Typesetting and illustration share the sitting. Alternate if one is stuck.']},
+ {key:'product',name:'New product',group:'choice',type:'product',
+  blurb:'Developing a business idea.',
+  today:'Problem, user, rough concepts, or one page of the brief.',cadence:'A dealer\'s choice option.',
+  how:['Start with the problem and who has it, then 3 rough concepts, then pick one and write a one-page brief.']},
+ {key:'painting',name:'Painting',group:'protected',type:'painting',
+  blurb:'Not career oriented, and that is the point. One session a week, not scored.',
+  today:'',cadence:'Once a week, any day. Tick it on Today.',
+  how:['No deliverables, just the sessions.']},
+ {key:'aw',name:'Artist\'s Way',group:'protected',type:'aw',
+  blurb:'Reading and the exercises that come with it. Protected time, not scored.',
+  today:'',cadence:'Once a week at minimum, any day. Tick it on Today.',
+  how:['Do the exercises as you reach them in the book. Use the Notebook for anything you want to keep.','Make room for the weekly exercises that need more than a short sitting.']}
 ];
 var TBY={};TRACKS.forEach(function(t){TBY[t.key]=t;});
-var P1=['apps','outreach','nespresso','portfolio','deck'], POOL=['product','publication','skills'];
-var POOL_FULL=3;
-var LIGHT=[2,6,7]; /* Thanksgiving week and the two holiday weeks default to floor */
+var MAIN3=['job','nespresso','portfolio'], OTHERS=['lab','posts','publication','product'];
+var THEME={1:'job',2:'nespresso',3:'job',4:'portfolio'};
 
-function modeOf(i){var k=iso(weekStart(i));return S.mode[k]||(LIGHT.indexOf(i)>=0?'floor':'full');}
-function fullOf(key,i){var t=TBY[key];return Array.isArray(t.full)?t.full[i]:t.full;}
-function target(key,i){var t=TBY[key],f=fullOf(key,i);return modeOf(i)==='floor'?Math.min(f,t.floor):f;}
-function poolTarget(i){return isLaunch(i)||modeOf(i)==='floor'?0:POOL_FULL;}
-function logOf(i){return S.log[iso(weekStart(i))]||{};}
-function n(i,key){return logOf(i)[key]||0;}
-function poolN(i){return POOL.reduce(function(a,k){return a+n(i,k);},0);}
+function themeOf(d){if(!eligible(d))return null;var w=d.getDay();return w===5?'choice':(THEME[w]||null);}
+function dayRec(d){return S.days[iso(d)]||{};}
+function dayN(d,k){return dayRec(d)[k]||0;}
+function focusKey(d){var t=themeOf(d);if(t==='choice')return dayRec(d).c||null;return t;}
+function wsum(i,k){return weekDays(i).reduce(function(a,d){return a+dayN(d,k);},0);}
+function outBar(i){return OUT_PER_DAY*weekDays(i).filter(eligible).length;}
+function appBar(i){return APP_PER_DAY*weekDays(i).filter(eligible).length;}
+function focusBar(i){return weekDays(i).filter(function(d){return eligible(d)&&d.getDay()<=4;}).length;}
+function weekOver(i){return addDays(weekStart(i),6)<today();}
+function weekFlag(i,k){return !!((S.wk[iso(weekStart(i))]||{})[k]);}
+function streak(){
+  var t=today(),c=0;
+  for(var k=0;k<150;k++){var dd=addDays(t,-k);if(dd<LAUNCH)break;if(!eligible(dd))continue;if(dayN(dd,'o')>=OUT_MIN)c++;else if(k===0)continue;else break;}
+  return c;
+}
+function weekResult(i){
+  var o=wsum(i,'o'),a=wsum(i,'a'),f=wsum(i,'d'),ob=outBar(i),ab=appBar(i),fb=focusBar(i);
+  var hit=(o>=ob?1:0)+(a>=ab?1:0)+(f>=fb?1:0),over=weekOver(i);
+  var t,k;
+  if(!over){t=hit===3?'On track, all three met':'In progress';k=hit===3?'good':'';}
+  else if(hit===3){t='Week held';k='good';}
+  else if(hit===2){t='Mostly held';k='ok';}
+  else{t='Light week';k='ok';}
+  return {o:o,a:a,f:f,ob:ob,ab:ab,fb:fb,hit:hit,over:over,t:t,k:k};
+}
 
 /* month closes: last working day of each month. A close counts the week it lands in when that is Thu or Fri, otherwise the week before. */
 var CLOSES=['2026-11-30','2026-12-31','2027-01-29'], CLOSE_NAME=['Nov close','Dec close','Jan close'];
 function closeThrough(ci){var d=parse(CLOSES[ci]);var w=weekOf(d);if(d.getDay()>=1&&d.getDay()<=3)w-=1;return Math.max(0,w);}
-function cumTarget(key,through){var s=0;for(var i=0;i<=through;i++)s+=target(key,i);return s;}
-function cumActual(key,through){var s=0;for(var i=0;i<=through;i++)s+=n(i,key);return s;}
+function cumTarget(kind,through){var s=0;for(var i=0;i<=through;i++)s+=(kind==='o'?outBar(i):appBar(i));return s;}
+function cumActual(kind,through){var s=0;for(var i=0;i<=through;i++)s+=wsum(i,kind);return s;}
 
-/* deliverables. hard = month close (slips are logged). soft = checkpoint (move freely). auto = counted from your weekly log. */
+/* deliverables. hard = month close (slips are logged). soft = checkpoint (move freely). auto = counted from your daily log. */
 var MILESTONES=[
- {id:'a_cp1',track:'apps',date:'2026-11-16',title:'Strategy session: answer the 5 questions (North Star, Unfair Advantage, Target, Positioning, Playbook)',detail:'Then decide the application tactics you want to try. Talk it through with Claude once the plan is live.'},
- {id:'a_c1',track:'apps',date:CLOSES[0],hard:1,auto:1,ci:0},
- {id:'a_c2',track:'apps',date:CLOSES[1],hard:1,auto:1,ci:1},
- {id:'a_c3',track:'apps',date:CLOSES[2],hard:1,auto:1,ci:2},
- {id:'o_cp1',track:'outreach',date:'2026-11-20',title:'Dream-company list: 10 companies with 5 to 8 people mapped at each',detail:'Feeds the weekly outreach count.'},
- {id:'o_cp2',track:'outreach',date:'2026-11-24',title:'Reply check: replies counted by channel and by who you wrote to',detail:'Mark companies as Replied in the Pipeline below. If the first 50 or so messages got fewer than 3 replies, change one thing: channel, who, or the ask.'},
- {id:'o_c1',track:'outreach',date:CLOSES[0],hard:1,auto:1,ci:0},
- {id:'o_c2',track:'outreach',date:CLOSES[1],hard:1,auto:1,ci:1},
- {id:'o_c3',track:'outreach',date:CLOSES[2],hard:1,auto:1,ci:2},
- {id:'n_cp1',track:'nespresso',date:'2026-12-11',title:'First AI-proposed output shown to a real person',detail:'The old midterm. Soft date: if it moves, say so at the Friday close.'},
- {id:'n_c1',track:'nespresso',date:CLOSES[0],hard:1,title:'Research and dataset done'},
- {id:'n_c2',track:'nespresso',date:CLOSES[1],hard:1,title:'System architecture sketched, visual system and semi-generator working'},
- {id:'n_cp2',track:'nespresso',date:'2027-01-15',title:'Case study draft ready'},
- {id:'n_c3',track:'nespresso',date:CLOSES[2],hard:1,title:'Case study final: written, visuals ready for the site'},
- {id:'p_cp1',track:'portfolio',date:'2026-11-20',title:'Ulama: cuts chosen and moved to the deck vault folder',detail:'The shortened version goes live by the Nov close.'},
- {id:'p_c1',track:'portfolio',date:CLOSES[0],hard:1,title:'Ulama shortened on the site',detail:'Cuts go into the Ulama deck vault folder.'},
- {id:'p_cp2',track:'portfolio',date:'2026-12-11',title:'Alternew shortened',detail:'Cuts go into the Alternew deck vault folder.'},
- {id:'p_c2',track:'portfolio',date:CLOSES[1],hard:1,title:'All three case studies shortened (Her Health Club last), deck vault folders filled'},
- {id:'p_c3',track:'portfolio',date:CLOSES[2],hard:1,title:'Nespresso case study live on the site'},
- {id:'d_cp1',track:'deck',date:'2026-11-20',title:'Storytelling sitting 1 done: 3 methods compared'},
- {id:'d_c1',track:'deck',date:CLOSES[0],hard:1,title:'Storytelling research done and one method picked',detail:'The second sitting can ride the Thanksgiving week or double up in Week 2.'},
- {id:'d_c2',track:'deck',date:CLOSES[1],hard:1,title:'Deck v1 draft built (outline plus a first pass from the cuts so far)'},
- {id:'d_c3',track:'deck',date:CLOSES[2],hard:1,title:'Deck tested with a real person, v2 final'},
- {id:'x_c1',track:'product',date:CLOSES[0],hard:1,title:'Problem and user written down'},
- {id:'x_c2',track:'product',date:CLOSES[1],hard:1,title:'3 rough concepts plus a chosen one (one-page brief drafted)'},
- {id:'x_c3',track:'product',date:CLOSES[2],hard:1,title:'One-page idea brief final, talked to 3 target users, pursue-or-park decision made'},
- {id:'b_c1',track:'publication',date:CLOSES[0],hard:1,title:'Layout started: structure and first pages laid out',detail:'Self-set, no outside deadline.'},
- {id:'b_c2',track:'publication',date:CLOSES[1],hard:1,title:'Layout done',detail:'Self-set, no outside deadline.'},
- {id:'b_c3',track:'publication',date:CLOSES[2],hard:1,title:'Illustrations done',detail:'Self-set, no outside deadline.'},
- {id:'k_cp1',track:'skills',date:'2026-11-20',title:'Post idea bank: 10 ideas, each tagged interaction or physical',detail:'About 7 interaction and 3 physical. One pool session, then keep them in the Notebook on this page.'},
- {id:'k_c1',track:'skills',date:CLOSES[0],hard:1,title:'Idea bank done and the first piece made, ready to post'},
- {id:'k_c2',track:'skills',date:CLOSES[1],hard:1,title:'3 posts live in total (interaction pieces plus a physical brief)'},
- {id:'k_c3',track:'skills',date:CLOSES[2],hard:1,title:'6 posts live in total, with a note on which ones got a response'},
- {id:'l_cp1',track:'lab',date:'2026-11-20',title:'Pick the 1 or 2 skills to focus on, and what "better" looks like for each',detail:'Your first lab session on Mon Nov 16 is a good place to decide this.'},
- {id:'l_c1',track:'lab',date:CLOSES[0],hard:1,auto:1,ci:0},
- {id:'l_c2',track:'lab',date:CLOSES[1],hard:1,auto:1,ci:1},
- {id:'l_c3',track:'lab',date:CLOSES[2],hard:1,auto:1,ci:2},
- {id:'g_c1',track:'painting',date:CLOSES[0],hard:1,auto:1,ci:0},
- {id:'g_c2',track:'painting',date:CLOSES[1],hard:1,auto:1,ci:1},
- {id:'g_c3',track:'painting',date:CLOSES[2],hard:1,auto:1,ci:2}
+ {id:'j_cp1',track:'job',date:'2026-12-04',title:'Reply check: replies counted by channel and by who you wrote to',detail:'Mark companies as Replied in the Pipeline below. If the first 50 or so messages got fewer than 3 replies, change one thing: channel, who, or the ask.'},
+ {id:'j_cp2',track:'job',date:'2026-12-11',title:'Pinned for now: answer the 5 questions (North Star, Unfair Advantage, Target, Positioning, Playbook)',detail:'Move this freely. It also reworks the outreach message.'},
+ {id:'j_o1',track:'job',kind:'o',date:CLOSES[0],hard:1,auto:1,ci:0},
+ {id:'j_a1',track:'job',kind:'a',date:CLOSES[0],hard:1,auto:1,ci:0},
+ {id:'j_o2',track:'job',kind:'o',date:CLOSES[1],hard:1,auto:1,ci:1},
+ {id:'j_a2',track:'job',kind:'a',date:CLOSES[1],hard:1,auto:1,ci:1},
+ {id:'j_o3',track:'job',kind:'o',date:CLOSES[2],hard:1,auto:1,ci:2},
+ {id:'j_a3',track:'job',kind:'a',date:CLOSES[2],hard:1,auto:1,ci:2},
+ {id:'n_c1',track:'nespresso',date:CLOSES[0],hard:1,title:'Research started: sources and dataset ideas listed'},
+ {id:'n_cp1',track:'nespresso',date:'2026-12-11',title:'Architecture sketch shown to one real person'},
+ {id:'n_c2',track:'nespresso',date:CLOSES[1],hard:1,title:'Research and dataset done, system architecture sketched'},
+ {id:'n_c3',track:'nespresso',date:CLOSES[2],hard:1,title:'Visual system and semi-generator working, first AI-proposed output shown'},
+ {id:'p_c1',track:'portfolio',date:CLOSES[0],hard:1,title:'Ulama: cuts chosen and moved to the deck vault folder, 3 role postings read',detail:'For each posting, note what is expected and where your gaps are.'},
+ {id:'p_cp1',track:'portfolio',date:'2026-12-11',title:'Role expectations list: 10 postings read, what is expected and where your gaps are'},
+ {id:'p_c2',track:'portfolio',date:CLOSES[1],hard:1,title:'Ulama and Alternew shortened on the site, role expectations list done'},
+ {id:'p_c3',track:'portfolio',date:CLOSES[2],hard:1,title:'All three case studies shortened (Her Health Club last), deck vault folders filled'},
+ {id:'d_cp1',track:'deck',date:'2027-01-15',title:'Deck restarts once the portfolio edits are on the site: first storytelling research sitting'},
+ {id:'k_cp1',track:'posts',date:'2026-12-18',title:'Post idea bank: 10 ideas, each tagged interaction or physical',detail:'About 7 interaction and 3 physical. Keep them in the Notebook on this page.'},
+ {id:'s_cp1',track:'lab',date:'2026-12-18',title:'Pick 1 or 2 skills to focus on, and what "better" looks like for each'}
 ];
 var MBY={};MILESTONES.forEach(function(m){MBY[m.id]=m;});
 function mTitle(m){
   if(S.scope[m.id])return S.scope[m.id];
-  if(m.auto){var t=TBY[m.track];var verb=m.track==='apps'?'applications submitted':m.track==='outreach'?'messages sent':m.track==='lab'?'skills lab sessions':'painting sessions';return cumTarget(m.track,closeThrough(m.ci))+' '+verb+' since Nov 13';}
+  if(m.auto){var verb=m.kind==='o'?'messages sent':'applications submitted';return cumTarget(m.kind,closeThrough(m.ci))+' '+verb+' since Nov 24';}
   return m.title;
 }
 function curDate(m){return S.moved[m.id]||m.date;}
 function slipsOf(id){return S.slips.filter(function(s){return s.id===id&&!s.drop;});}
 function isDropped(m){return !!S.dropped[m.id];}
 
-/* ---------- calendar template (movable) ---------- */
-var BLOCKS=[
- {dow:1,type:'outreach',title:'Outreach',s:mins(9,30),e:mins(11,30),note:'8 to 10 new messages. Replies count here too.'},
- {dow:1,type:'nespresso',title:'Nespresso',s:mins(13),e:mins(15),note:'Leave a two-line "where I left off" note.'},
- {dow:1,type:'lab',title:'Skills lab',s:mins(15,15),e:mins(16,45),note:'Protected practice time. No output needed.'},
- {dow:2,type:'apps',title:'Applications',s:mins(9,30),e:mins(12),note:'Resume test, then submit. Outreach must be 2+ days old.'},
- {dow:2,type:'portfolio',title:'Portfolio edits',s:mins(13),e:mins(15,30),note:'One case study at a time.'},
- {dow:3,type:'outreach',title:'Outreach',s:mins(9,30),e:mins(11,30),note:'8 to 10 new messages. Replies count here too.'},
- {dow:3,type:'nespresso',title:'Nespresso',s:mins(13),e:mins(15),note:'Leave a two-line "where I left off" note.'},
- {dow:3,type:'tier2',title:'Tier 2 session',s:mins(15,15),e:mins(16,45),note:'Product, publication or creative exercise. Your pick.'},
- {dow:4,type:'apps',title:'Applications',s:mins(9,30),e:mins(12),note:'Resume test, then submit.'},
- {dow:4,type:'deck',title:'Deck',s:mins(13),e:mins(15),note:'Research, then build, then test.'},
- {dow:4,type:'tier2',title:'Tier 2 session',s:mins(15),e:mins(16,30),note:'Product, publication or creative exercise. Your pick.'},
- {dow:5,type:'tier2',title:'Tier 2 session',s:mins(9,30),e:mins(11),note:'Product, publication or creative exercise. Your pick.'},
- {dow:5,type:'outreach',title:'Outreach top-up',s:mins(11,15),e:mins(12),note:'Close the gap on the week\'s 50, and answer replies.'},
- {dow:5,type:'painting',title:'Painting',s:mins(13),e:mins(14,30),note:'Protected.'},
- {dow:5,type:'plan',title:'Friday close',s:mins(16),e:mins(16,20),note:'Log the week, copy the scorecard, deal with any slips.'},
- {dow:0,type:'plan',title:'Sunday plan',s:mins(17),e:mins(17,15),note:'Pick full or floor, choose the Tier 2 split, note appointments.'}
-];
-var TYPE_LABEL={tier2:'Tier 2 session',plan:'Plan and close'};
-
 /* ---------- state ---------- */
 var LS='term-binder-v1';
 var S=blank();
-function blank(){return {done:{},left:{},notes:{},links:{},extra:{},pipeline:[],apps:{},swaps:{},log:{},mode:{},slips:[],moved:{},dropped:{},scope:{}};}
+function blank(){return {done:{},left:{},notes:{},links:{},extra:{},pipeline:[],apps:{},swaps:{},log:{},mode:{},slips:[],moved:{},dropped:{},scope:{},days:{},wk:{}};}
 function norm(o){var b=blank();if(!o||typeof o!=='object')return b;Object.keys(b).forEach(function(k){if(o[k]!=null)b[k]=o[k];});if(!Array.isArray(b.pipeline))b.pipeline=[];if(!Array.isArray(b.slips))b.slips=[];return b;}
 var mode='local',db=null,ref=null,saving=false,dirty=false,timer=null;
 function setSaved(msg){var el=document.getElementById('saved');if(el)el.textContent=msg;}
@@ -468,43 +467,10 @@ function backupBanner(){
   return '<div class="note" style="display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;justify-content:space-between"><span><b>Back up your notes.</b> Clearing this browser\'s site data would erase them.</span><a href="#backup">Open Backup</a></div>';
 }
 
-/* ---------- week maths ---------- */
-var FLOORS={apps:4,outreach:25,nespresso:1,portfolio:0,deck:0,painting:1,lab:1};
-function weekResult(i){
-  var m=modeOf(i),hit=true,floor=true,miss=[];
-  if(isLaunch(i))return {k:'',t:'Launch week, not scored',floor:true,hit:false,miss:[],mode:m,launch:true};
-  P1.forEach(function(k){
-    var have=n(i,k),t=target(k,i),fl=Math.min(FLOORS[k],fullOf(k,i));
-    if(have<t){hit=false;miss.push(TBY[k].name+' '+(t-have)+' more');}
-    if(have<fl)floor=false;
-  });
-  if(n(i,'painting')<1){hit=false;floor=false;miss.push('Painting 1 more');}
-  if(n(i,'lab')<1){hit=false;floor=false;miss.push('Skills lab 1 more');}
-  var pt=poolTarget(i),pn=poolN(i);
-  if(pn<pt){hit=false;miss.push('Tier 2 pool '+(pt-pn)+' more');}
-  var k,t;
-  if(hit){k='good';t=m==='floor'?'Floor week held':'Full week hit';}
-  else if(floor){k='ok';t='Floor held';}
-  else{k='bad';t='Floor missed';}
-  return {k:k,t:t,floor:floor,hit:hit,miss:miss,mode:m};
-}
-function weekOver(i){return addDays(weekStart(i),6)<today();}
-function weekStarted(i){return weekStart(i)<=today();}
-function streak(){
-  var t=today(),last=t<PLAN_START?-1:(t>addDays(weekStart(WEEKS-1),6)?WEEKS-1:weekOf(t)-1);
-  var c=0;for(var i=last;i>=0;i--){if(isLaunch(i))continue;if(weekResult(i).floor)c++;else break;}return c;
-}
-function totals(){
-  var hit=0,floorUsed=0,over=0;
-  for(var i=0;i<WEEKS;i++){if(weekOver(i)&&!isLaunch(i)){over++;if(weekResult(i).hit&&modeOf(i)==='full')hit++;}if(modeOf(i)==='floor'&&weekStart(i)<=today())floorUsed++;}
-  return {fullHit:hit,floorUsed:floorUsed,over:over};
-}
-
 /* ---------- deliverable status ---------- */
 function autoState(m){
-  var th=closeThrough(m.ci),tgt=cumTarget(m.track,th),act=cumActual(m.track,th),close=parse(m.date);
-  var done=act>=tgt;
-  var st;
+  var th=closeThrough(m.ci),tgt=cumTarget(m.kind,th),act=cumActual(m.kind,th),close=parse(m.date);
+  var done=act>=tgt,st;
   if(done)st={k:'ok',t:'Hit'};
   else if(today()>close)st={k:'over',t:'Missed by '+(tgt-act)};
   else{var d=daysTo(close);st={k:d<=7?'soon':'',t:(tgt-act)+' to go, '+(d===0?'today':'in '+d+'d')};}
@@ -540,7 +506,7 @@ function dRow(m,opts){
   var left;
   if(m.auto)left='<span class="ph"></span>';
   else left='<input type="checkbox" data-a="toggle" data-id="'+m.id+'"'+(done?' checked':'')+(dropped?' disabled':'')+' aria-label="Mark done">';
-  var detail=m.auto?(function(){var a=autoState(m);return 'Counted from your weekly log: '+a.act+' of '+a.tgt+' through week '+(a.th+1)+'.';})():(m.detail||'');
+  var detail=m.auto?(function(){var a=autoState(m);return 'Counted from your daily log: '+a.act+' of '+a.tgt+' through the week of '+md(weekStart(a.th))+'.';})():(m.detail||'');
   var hardTag=m.hard?'<span class="tag hard">Close</span>':'<span class="tag">Checkpoint</span>';
   var html='<div class="item t-'+t.type+(done?' done':'')+(dropped?' dropped':'')+'">'+left+'<div><div class="t">'+(opts.showTrack?chip(m.track)+'<br>':'')+esc(mTitle(m))+hardTag+'</div>';
   if(detail)html+='<div class="d">'+esc(detail)+'</div>';
@@ -551,39 +517,6 @@ function dRow(m,opts){
   html+='</div><div class="when">'+md(parse(cd))+'<br><span class="pill '+st.k+'">'+esc(st.t)+'</span></div></div>';
   return html;
 }
-
-/* ---------- views ---------- */
-var curWeek=0;
-(function(){var t=today();curWeek=t<PLAN_START?0:weekOf(t);})();
-var route='board';
-
-function sprintRow(key,i,opts){
-  opts=opts||{};
-  var t=TBY[key],have=n(i,key),tg=opts.noTarget?null:target(key,i),full=fullOf(key,i);
-  var floorV=t.floor!=null?Math.min(t.floor,full):0;
-  var scale=tg!=null?Math.max(tg,have,1):Math.max(have,POOL_FULL,1);
-  var pct=Math.min(100,Math.round(have/scale*100));
-  var fpct=(tg!=null&&tg>0&&floorV>0&&floorV<tg)?Math.round(floorV/scale*100):null;
-  var off=tg===0&&!opts.noTarget;
-  var hint=opts.hint||t.hours;if(isLaunch(i)&&tg===0&&!opts.noTarget)hint='Starts Mon Nov 16. Anything you log still counts.';
-  var html='<div class="sr t-'+t.type+(off?' off':'')+'"><div class="nm"><a href="#'+t.key+'"><span class="sw"></span>'+esc(t.name)+'</a><span class="h">'+esc(hint)+'</span></div>';
-  html+='<div class="meter" role="img" aria-label="'+have+(tg!=null?' of '+tg:'')+'"><i style="width:'+pct+'%"></i>'+(fpct!=null?'<u style="left:'+fpct+'%" title="floor"></u>':'')+'</div>';
-  html+='<div class="ctl"><button class="step" data-a="bump" data-k="'+key+'" data-dir="-1" aria-label="One fewer '+esc(t.name)+'">-</button><b>'+have+'</b>'+(key==='outreach'?'<button class="step wide" data-a="bump" data-k="'+key+'" data-dir="5" aria-label="Five more">+5</button>':'')+'<button class="step" data-a="bump" data-k="'+key+'" data-dir="1" aria-label="One more '+esc(t.name)+'">+</button><span class="of">'+(tg!=null?'of '+tg:'')+'</span></div></div>';
-  return html;
-}
-function scorecard(i){
-  var ws=weekStart(i),r=weekResult(i),m=modeOf(i);
-  function f(k){return TBY[k].name+' '+n(i,k)+'/'+target(k,i);}
-  var pool=POOL.filter(function(k){return n(i,k)>0;}).map(function(k){return TBY[k].name.split(' ')[0]+' '+n(i,k);}).join(', ');
-  var lines=['Week of '+wlabel(i)+' ('+(isLaunch(i)?'launch':m)+' week)',
-   'Priority 1: '+P1.map(f).join(', '),
-   'Priority 2: '+poolN(i)+'/'+poolTarget(i)+' pool sessions'+(pool?' ('+pool+')':'')+', Painting '+n(i,'painting')+'/1, Skills lab '+n(i,'lab')+'/1',
-   'Result: '+r.t+(r.miss.length&&!r.hit?' (short: '+r.miss.join(', ')+')':''),
-   'Floor streak: '+streak()+' week'+(streak()===1?'':'s')];
-  var nc=nextClose();
-  lines.push('Next close: '+md(parse(CLOSES[nc.i]))+', '+nc.done+' of '+nc.total+' delivered, '+S.slips.filter(function(s){return !s.drop;}).length+' slip'+(S.slips.filter(function(s){return !s.drop;}).length===1?'':'s')+' so far');
-  return lines.join('\n');
-}
 function closeItems(ci){return MILESTONES.filter(function(m){return m.hard&&m.date===CLOSES[ci];});}
 function nextClose(){
   var t=today(),ci=0;
@@ -592,62 +525,128 @@ function nextClose(){
   return {i:ci,total:items.length,done:done};
 }
 
-function viewBoard(){
-  var i=curWeek,ws=weekStart(i),m=modeOf(i),r=weekResult(i),t=today();
-  var started=weekStarted(i),over=weekOver(i);
-  var html='<div class="stack"><div class="row" style="justify-content:space-between;align-items:flex-end"><div><div class="label">Week '+(i+1)+' of '+WEEKS+(isLaunch(i)?', launch week':LIGHT.indexOf(i)>=0?', light week':'')+'</div><h2>'+wlabel(i)+' to '+md(addDays(ws,6))+'</h2></div>';
-  html+='<div class="weekpick" role="group" aria-label="Week mode"><button class="chipbtn" data-a="mode" data-m="full" aria-pressed="'+(m==='full')+'">Full week</button><button class="chipbtn" data-a="mode" data-m="floor" aria-pressed="'+(m==='floor')+'">Floor week</button></div></div>';
-  html+='<div class="scrollrow" role="group" aria-label="Choose week">';
-  for(var w=0;w<WEEKS;w++)html+='<button class="chipbtn" data-a="week" data-i="'+w+'" aria-pressed="'+(w===i)+'">W'+(w+1)+' '+wlabel(w)+'</button>';
+/* ---------- today ---------- */
+var route='today', curDay=null;
+function dayNow(){return curDay||today();}
+function fname(k){return k&&TBY[k]?TBY[k].name:'';}
+
+function counterRow(cls,name,hint,key,have,goal,minv){
+  var scale=Math.max(have,goal,1),pct=Math.min(100,Math.round(have/scale*100));
+  var tick=minv?Math.round(minv/scale*100):null;
+  return '<div class="sr '+cls+'"><div class="nm"><span style="display:flex;align-items:center;gap:8px;font-weight:600;color:color-mix(in srgb,var(--c) var(--m),var(--ink))"><span class="sw"></span>'+esc(name)+'</span><span class="h">'+esc(hint)+'</span></div>'+
+   '<div class="meter" role="img" aria-label="'+have+(goal?' of '+goal:'')+'"><i style="width:'+pct+'%"></i>'+(tick!=null&&tick<100?'<u style="left:'+tick+'%" title="minimum"></u>':'')+'</div>'+
+   '<div class="ctl"><button class="step" data-a="bump" data-k="'+key+'" data-dir="-1" aria-label="One fewer '+esc(name)+'">-</button><b>'+have+'</b>'+(key==='o'?'<button class="step wide" data-a="bump" data-k="o" data-dir="5" aria-label="Five more">+5</button>':'')+'<button class="step" data-a="bump" data-k="'+key+'" data-dir="1" aria-label="One more '+esc(name)+'">+</button><span class="of">'+(goal?'of '+goal:'')+'</span></div></div>';
+}
+function weekRow(cls,name,hint,have,bar){
+  var scale=Math.max(have,bar,1),pct=Math.min(100,Math.round(have/scale*100));
+  return '<div class="sr '+cls+'"><div class="nm"><span style="display:flex;align-items:center;gap:8px;font-weight:600;color:color-mix(in srgb,var(--c) var(--m),var(--ink))"><span class="sw"></span>'+esc(name)+'</span><span class="h">'+esc(hint)+'</span></div><div class="meter" role="img" aria-label="'+have+' of '+bar+'"><i style="width:'+pct+'%"></i></div><div class="ctl"><b>'+have+'</b><span class="of">of '+bar+'</span></div></div>';
+}
+function owedFor(d){
+  var wi=weekOf(d),out=[],t=today();
+  weekDays(wi).forEach(function(x){if(x<d&&x<=t&&eligible(x)&&x.getDay()<=4&&!dayRec(x).d)out.push({d:x,k:themeOf(x)});});
+  if(dayRec(d).d&&out.length)out.shift();
+  return out;
+}
+function choiceChips(d){
+  var ds=iso(d),cur=dayRec(d).c||'',owed=owedFor(d),seen={},html='';
+  owed.forEach(function(o){if(seen[o.k])return;seen[o.k]=1;html+='<button class="chipbtn" data-a="choice" data-k="'+o.k+'" aria-pressed="'+(cur===o.k)+'">Catch up: '+esc(fname(o.k))+' ('+DOW[o.d.getDay()]+')</button>';});
+  MAIN3.forEach(function(k){if(seen[k])return;seen[k]=1;html+='<button class="chipbtn" data-a="choice" data-k="'+k+'" aria-pressed="'+(cur===k)+'">'+esc(fname(k))+'</button>';});
+  if(d>=DEALER_FROM)OTHERS.forEach(function(k){html+='<button class="chipbtn" data-a="choice" data-k="'+k+'" aria-pressed="'+(cur===k)+'">'+esc(fname(k))+'</button>';});
+  return {html:html,owed:owed};
+}
+
+function viewToday(){
+  var d=dayNow(),ds=iso(d),wi=weekOf(d),t=today(),th=themeOf(d),rec=dayRec(d);
+  var wr=weekResult(wi),fk=focusKey(d);
+  var html='<div class="stack">';
+
+  /* header + day chips */
+  html+='<div class="row" style="justify-content:space-between;align-items:flex-end"><div><div class="label">'+(iso(d)===iso(t)?'Today':'Viewing')+', week '+(wi+1)+' of '+WEEKS+'</div><h2>'+dlong(d)+'</h2></div><div class="weekpick"><button class="chipbtn" data-a="wk" data-dir="-1" aria-label="Previous week">&lsaquo; Week</button><button class="chipbtn" data-a="wk" data-dir="1" aria-label="Next week">Week &rsaquo;</button><button class="chipbtn" data-a="day" data-d="'+iso(t)+'">Today</button></div></div>';
+  html+='<div class="scrollrow" role="group" aria-label="Choose day">';
+  weekDays(wi).forEach(function(x){
+    var met=eligible(x)&&dayN(x,'o')>=OUT_MIN;
+    html+='<button class="chipbtn'+(met?' met':'')+(eligible(x)?'':' rest')+'" data-a="day" data-d="'+iso(x)+'" aria-pressed="'+(iso(x)===ds)+'">'+DOW[x.getDay()]+' '+x.getDate()+(met?' &#10003;':'')+'</button>';
+  });
   html+='</div>';
 
-  /* verdict */
-  if(isLaunch(i)&&started){html+='<div class="verdict"><span class="label">Launch week</span><div class="v">Counting from Fri Nov 13</div><span class="muted">Outreach 10 is the one target this short week. Everything else starts Mon Nov 16, and anything you log now still adds to the month totals. Not scored.</span></div>';}
-  else if(!started){html+='<div class="verdict"><span class="label">Not started</span><div class="v">Starts '+dlong(ws)+'</div><span class="muted">'+(m==='floor'?'Floor week: Priority 1 floors plus painting and skills lab.':'Full week: every target, plus 3 Tier 2 pool sessions.')+'</span></div>';}
-  else{var vk=r.k,vt=r.t;if(!over&&!r.hit){vk=r.floor?'ok':'';vt=r.floor?'Floor held so far':'Floor not met yet';}
-    html+='<div class="verdict '+vk+'"><span class="label">'+(over?'Week result':'Right now')+'</span><div class="v">'+esc(vt)+'</div><span class="muted">'+(r.hit?'Everything the week asked for is in.':(r.miss.length?'Short: '+esc(r.miss.join(', '))+'.':''))+(r.hit||over?'':' The week is still open.')+'</span></div>';}
+  /* focus card */
+  if(d<LAUNCH){
+    html+='<div class="verdict t-plan tint"><span class="label" style="color:inherit">Not started</span><div class="v">Starts '+dlong(LAUNCH)+'</div><span class="muted">One theme a day, and the outreach minimum after breakfast.</span></div>';
+  }else if(!th){
+    html+='<div class="verdict t-plan tint"><span class="label" style="color:inherit">'+(d.getDay()===0||d.getDay()===6?'Weekend':'Holiday')+'</span><div class="v">Rest day</div><span class="muted">Nothing is owed. Painting and the Artist\'s Way fit here. Outreach is optional and still counts if you log it.</span></div>';
+  }else if(th==='choice'){
+    var cc=choiceChips(d),open=d>=DEALER_FROM;
+    html+='<div class="verdict t-'+(fk?TBY[fk].type:'plan')+' tint"><span class="label" style="color:inherit">Friday</span><div class="v">'+(fk?esc(fname(fk)):(open?"Dealer's choice":'Catch-up day'))+'</div><span class="muted">'+(open?'Pay back any lost theme day first. If nothing is owed, pick anything, including the others.':'Pay back any lost theme day, or move one of the main three forward. Dealer\'s choice opens '+dlong(DEALER_FROM)+'.')+'</span>'+
+      (cc.owed.length?'<span class="muted">Owed this week: '+cc.owed.map(function(o){return esc(fname(o.k))+' ('+DOW[o.d.getDay()]+')';}).join(', ')+'.</span>':'')+
+      '<div class="weekpick" style="margin-top:6px">'+cc.html+'</div></div>';
+  }else{
+    html+='<div class="verdict t-'+TBY[th].type+' tint"><span class="label" style="color:inherit">Today\'s focus</span><div class="v">'+esc(fname(th))+'</div><span class="muted">'+esc(TBY[th].today)+'</span></div>';
+  }
+
+  /* focus done */
+  if(th&&fk){
+    html+='<div class="panel"><div class="row" style="justify-content:space-between"><div><span class="label">The one thing</span><div style="font-weight:600;margin-top:2px">'+esc(fname(fk))+'</div></div><button class="btn'+(rec.d?'':' ghost')+'" data-a="focus">'+(rec.d?'Focus done':'Mark focus done')+'</button></div></div>';
+  }
+
+  /* counters */
+  html+='<div class="panel"><span class="label">Counts for '+dlong(d)+', tap to log</span><div class="sprint">';
+  var o=dayN(d,'o'),a=dayN(d,'a');
+  html+=counterRow('t-outreach','Outreach',o>=OUT_MIN?'Minimum met. Aim for '+OUT_GOAL+'.':(OUT_MIN-o)+' more for the minimum, 5 right after breakfast','o',o,OUT_GOAL,OUT_MIN);
+  html+=counterRow('t-apps','Applications','Resume test first, company site only','a',a,(th==='job'?APP_DAY_AIM:0),0);
+  html+='</div></div>';
+  html+='<div class="panel"><span class="label">3pm check-in</span><p class="muted" style="margin-top:4px">Touch base: what got done, what is left, what moves to Friday. Replan the rest of the day if it went sideways.</p></div>';
+
+  /* this week */
+  html+='<div class="panel"><div class="grouph"><span class="label">This week</span><span class="pill '+(wr.k==='good'?'ok':'')+'">'+esc(wr.t)+'</span></div><div class="sprint">';
+  html+=weekRow('t-outreach','Outreach','Needs about 10 a working day',wr.o,wr.ob);
+  html+=weekRow('t-apps','Applications','About 1 a working day',wr.a,wr.ab);
+  html+=weekRow('t-plan','Focus days','Mon to Thu themes, Friday catches up',wr.f,wr.fb);
+  html+='</div></div>';
 
   /* kpis */
-  var tt=totals(),nc=nextClose(),slipN=S.slips.filter(function(s){return !s.drop;}).length;
-  var cdays=daysTo(parse(CLOSES[nc.i]));
-  html+='<div class="kpis"><div class="kpi"><span class="label">Floor streak</span><b>'+streak()+'</b><small>weeks in a row at or above the floor</small></div>';
-  html+='<div class="kpi"><span class="label">Full weeks hit</span><b>'+tt.fullHit+'</b><small>of '+tt.over+' finished, '+tt.floorUsed+' floor week'+(tt.floorUsed===1?'':'s')+' used</small></div>';
+  var nc=nextClose(),cdays=daysTo(parse(CLOSES[nc.i])),slipN=S.slips.filter(function(s){return !s.drop;}).length;
+  html+='<div class="kpis"><div class="kpi"><span class="label">Start streak</span><b>'+streak()+'</b><small>working days in a row with the outreach minimum</small></div>';
   html+='<div class="kpi"><span class="label">Slips</span><b>'+slipN+'</b><small>closes moved so far, see Closes</small></div>';
   html+='<div class="kpi"><span class="label">Next close</span><b>'+md(parse(CLOSES[nc.i]))+'</b><small>'+(cdays<0?Math.abs(cdays)+' days ago':cdays===0?'today':'in '+cdays+' days')+', '+nc.done+' of '+nc.total+' delivered</small></div></div>';
 
-  /* sprint */
-  html+='<div class="panel"><span class="label">This week\'s counts, tap to log</span><div class="sprint">';
-  html+='<div class="sgrp"><h3>Priority 1</h3><span class="muted" style="font-size:12.5px">Tick marks show the floor</span></div>';
-  P1.forEach(function(k){html+=sprintRow(k,i);});
-  html+='<div class="sgrp" style="margin-top:16px"><h3>Priority 2</h3><span class="muted" style="font-size:12.5px">Pool: '+poolN(i)+' of '+poolTarget(i)+' sessions, split any way you like</span></div>';
-  POOL.forEach(function(k){html+=sprintRow(k,i,{noTarget:true,hint:TBY[k].name==='New product'?'Close to Priority 1, borrows time when the week allows':TBY[k].hours});});
-  html+=sprintRow('lab',i,{hint:'Protected practice time, counts toward the floor'});
-  html+=sprintRow('painting',i,{hint:'Protected, counts toward the floor'});
+  /* week table */
+  html+='<div class="panel"><span class="label">The week at a glance</span><div class="scroll"><table class="table"><thead><tr><th>Day</th><th>Focus</th><th>Outreach</th><th>Apps</th><th>Done</th></tr></thead><tbody>';
+  weekDays(wi).forEach(function(x){
+    var tk=focusKey(x),tx=themeOf(x),el=eligible(x);
+    var focus=!el?'<span class="muted">'+(x<LAUNCH?'Before the start':(x.getDay()===0||x.getDay()===6?'Rest':'Holiday'))+'</span>':(tk?esc(fname(tk)):(tx==='choice'?"<span class=\"muted\">Dealer's choice</span>":''));
+    html+='<tr><td><button class="linkbtn" data-a="day" data-d="'+iso(x)+'">'+DOW[x.getDay()]+' '+x.getDate()+'</button></td><td>'+focus+'</td><td class="mono">'+(dayN(x,'o')||'')+'</td><td class="mono">'+(dayN(x,'a')||'')+'</td><td>'+(dayN(x,'d')?'&#10003;':'')+'</td></tr>';
+  });
+  html+='</tbody></table></div></div>';
+
+  /* protected */
+  html+='<div class="panel"><span class="label">Protected this week, not scored</span><div class="list">';
+  ['painting','aw'].forEach(function(k){
+    var key=k==='painting'?'paint':'aw',tr=TBY[k];
+    html+='<div class="item t-'+tr.type+'"><input type="checkbox" data-a="wkflag" data-k="'+key+'"'+(weekFlag(wi,key)?' checked':'')+' aria-label="'+esc(tr.name)+' done this week"><div><div class="t">'+esc(tr.name)+'</div><div class="d">'+esc(tr.cadence)+'</div></div><span></span></div>';
+  });
   html+='</div></div>';
 
-  /* due this week + scorecard */
-  var due=MILESTONES.filter(function(x){if(isDropped(x))return false;var d=parse(curDate(x));return d>=ws&&d<=addDays(ws,6);});
+  /* due this week */
+  var ws=weekStart(wi),we=addDays(ws,6);
+  var due=MILESTONES.filter(function(x){if(isDropped(x))return false;var dd=parse(curDate(x));return dd>=ws&&dd<=we;});
   var overdue=MILESTONES.filter(function(x){return !x.auto&&!isDropped(x)&&!S.done[x.id]&&parse(curDate(x))<ws&&parse(curDate(x))<t;});
-  html+='<div class="cols"><div class="panel"><span class="label">Due this week</span><div class="list">';
+  html+='<div class="panel"><span class="label">Due this week</span><div class="list">';
   if(!due.length&&!overdue.length)html+='<div class="empty">Nothing is due this week. Month closes are on the Closes tab.</div>';
   overdue.forEach(function(x){html+=dRow(x,{showTrack:1});});
   due.forEach(function(x){if(overdue.indexOf(x)<0)html+=dRow(x,{showTrack:1});});
   html+='</div></div>';
-  html+='<div class="panel"><span class="label">Friday close, optional</span><p class="muted" style="margin-bottom:10px">Log the counts above, then copy a short scorecard. Send it to someone if having a witness helps, or skip it.</p><textarea id="score" rows="8" readonly aria-label="Scorecard" style="line-height:1.5">'+esc(scorecard(i))+'</textarea><div class="row" style="margin-top:10px"><button class="btn" data-a="copyscore">Copy scorecard</button><span class="status" id="smsg"></span></div></div></div>';
   html+='</div>';
   return html;
 }
 
+/* ---------- closes ---------- */
 function viewCloses(){
-  var html='<div class="stack"><div><span class="label">The contract</span><h2>Month closes</h2><p class="muted" style="max-width:62ch;margin-top:6px">Each close is the last working day of the month, with one deliverable per track. A close can move once with a logged reason. The second move means cutting scope. After that it is dropped or handed off.</p></div>';
+  var html='<div class="stack"><div><span class="label">The contract</span><h2>Month closes</h2><p class="muted" style="max-width:62ch;margin-top:6px">Each close is the last working day of the month, with a small set of deliverables for the main three. A close can move once with a logged reason. The second move means cutting scope. After that it is dropped or handed off.</p></div>';
   CLOSES.forEach(function(c,ci){
     var items=closeItems(ci),done=items.filter(function(m){return isDone(m);}).length,d=daysTo(parse(c));
     html+='<div class="panel"><div class="grouph"><h3>'+CLOSE_NAME[ci]+', '+dlong(parse(c))+'</h3><span class="label">'+done+' of '+items.length+' delivered, '+(d<0?Math.abs(d)+' days ago':d===0?'today':'in '+d+' days')+'</span></div>';
-    html+='<div class="muted" style="font-size:13px;margin-bottom:4px">Counts for the automatic rows run through week '+(closeThrough(ci)+1)+' ('+md(weekStart(closeThrough(ci)))+' to '+md(addDays(weekStart(closeThrough(ci)),6))+').</div>';
-    [1,2].forEach(function(tier){
-      html+='<div class="label" style="margin:12px 0 2px">Priority '+tier+'</div><div class="list">'+items.filter(function(m){return TBY[m.track].tier===tier;}).map(function(m){return dRow(m,{showTrack:1});}).join('')+'</div>';
-    });
-    html+='</div>';
+    html+='<div class="muted" style="font-size:13px;margin-bottom:4px">Automatic rows count the weeks through '+md(weekStart(closeThrough(ci)))+' to '+md(addDays(weekStart(closeThrough(ci)),6))+'.</div>';
+    html+='<div class="list">'+items.map(function(m){return dRow(m,{showTrack:1});}).join('')+'</div></div>';
   });
   html+='<div class="panel"><span class="label">Slip log</span>';
   if(!S.slips.length)html+='<div class="empty">No slips yet. A clean log is the goal.</div>';
@@ -656,67 +655,68 @@ function viewCloses(){
   return html;
 }
 
-function viewCalendar(){
-  var html='<div class="panel"><span class="label">Google Calendar</span><h2>The week is a bank of movable blocks</h2><p class="muted" style="margin:8px 0 12px;max-width:64ch">These are the default placements for a full week, about 26 hours. Slide any block to any day that week, or skip it. Only the counts on the board and the month closes are tracked, not where the block sat.</p>';
-  html+='<div class="note">'+(CAL_SYNCED?'These blocks are in your calendar'+(CAL_EMAIL?' ('+esc(CAL_EMAIL)+')':'')+', colored by track.':'Your calendar may still show the old term blocks. They get replaced with these as a separate step.')+'</div></div>';
-  html+='<div class="panel"><span class="label">A default full week, Monday to Friday</span><div class="weekgrid">';
-  for(var d=1;d<=5;d++){
-    var bl=BLOCKS.filter(function(b){return b.dow===d;}).sort(function(a,b){return a.s-b.s;});
-    html+='<section class="day"><div class="dh"><span class="dow">'+DOW[d]+'</span></div><div class="items">'+bl.map(function(b){return '<div class="blk tint t-'+b.type+'" title="'+esc(b.note)+'"><span class="time">'+trange(b.s,b.e)+'</span><strong><span class="sw"></span>'+esc(b.title)+'</strong><small>'+esc(b.note)+'</small></div>';}).join('')+'</div></section>';
-  }
-  html+='</div><p class="muted" style="margin-top:12px;font-size:13.5px">Plus the Sunday plan at 5:00 PM for 15 minutes. Workouts and appointments stay as they are, plan around them.</p></div>';
-  var rows=[['Applications','apps','5 h','Tue and Thu mornings'],['Outreach','outreach','4.75 h','Mon and Wed mornings, plus a short Fri top-up'],['Nespresso','nespresso','4 h','Mon and Wed afternoons'],['Portfolio edits','portfolio','2.5 h','Tue afternoon'],['Deck','deck','2 h','Thu afternoon'],['Tier 2 pool','tier2','4.5 h','Three 1.5 h sessions'],['Skills lab','lab','1.5 h','Mon afternoon'],['Painting','painting','1.5 h','Fri afternoon']];
-  html+='<div class="panel"><span class="label">Hours by track, full week</span><div class="scroll"><table class="table"><thead><tr><th>Track</th><th>Hours</th><th>Default spot</th></tr></thead><tbody>'+rows.map(function(r){return '<tr><td><span class="blk tint t-'+r[1]+'" style="display:inline-flex"><strong><span class="sw"></span>'+r[0]+'</strong></span></td><td class="mono">'+r[2]+'</td><td>'+r[3]+'</td></tr>';}).join('')+'</tbody></table></div></div>';
-  html+='<div class="panel"><span class="label">Color key</span><div class="legend">'+TRACKS.map(function(t){return '<div class="tint t-'+t.type+'"><span class="sw" style="margin-top:6px"></span><div><strong>'+esc(t.name)+'</strong><small>Priority '+t.tier+(t.protected?', protected':'')+'</small></div></div>';}).join('')+'<div class="tint t-tier2"><span class="sw" style="margin-top:6px"></span><div><strong>Tier 2 session</strong><small>Product, publication or creative exercise</small></div></div><div class="tint t-plan"><span class="sw" style="margin-top:6px"></span><div><strong>Plan and close</strong><small>Sunday plan, Friday close</small></div></div></div></div>';
+/* ---------- the week ---------- */
+function viewWeek(){
+  var days=[['Mon','job'],['Tue','nespresso'],['Wed','job'],['Thu','portfolio'],['Fri','choice']];
+  var html='<div class="panel"><span class="label">The shape of a week</span><h2>One theme a day, no clock times</h2><p class="muted" style="margin:8px 0 12px;max-width:64ch">Spend whatever time the day gives you on that day\'s theme and nothing else. If a day gets eaten, nothing needs moving. Time is not tracked, only the counts and the closes.</p><div class="weekgrid">';
+  days.forEach(function(x){
+    var th=x[1],tr=th==='choice'?null:TBY[th];
+    html+='<section class="day"><div class="dh"><span class="dow">'+x[0]+'</span></div><div class="items"><div class="blk tint t-'+(tr?tr.type:'plan')+'"><strong><span class="sw"></span>'+(tr?esc(tr.name):"Dealer's choice")+'</strong><small>'+(tr?esc(tr.today||tr.blurb):'Owed days first. From '+md(DEALER_FROM)+', anything you like, including Skills lab, Creative exercise, Publication and New product.')+'</small></div></div></section>';
+  });
+  html+='</div></div>';
+  html+='<div class="cols"><div class="panel"><span class="label">Every working day</span><h3 style="margin-bottom:10px">The tiny minimum</h3><ul class="ul"><li><b>After breakfast:</b> send 5 outreach messages. That is the start, and it gets your brain into work mode.</li><li>Send the other 5 any time later. The week is built on 10 a day, and 5 is what keeps the streak going on a rough day.</li><li><b>3pm:</b> check-in to touch base and replan.</li><li>Then the day\'s theme, with whatever time and energy you have.</li></ul></div>';
+  html+='<div class="panel"><span class="label">When a day gets eaten</span><h3 style="margin-bottom:10px">Nothing moves</h3><ul class="ul"><li>Do the 5 messages if you can, even at night.</li><li>The theme simply did not happen. Friday pays back what was lost.</li><li>The week asks for 50 messages, 5 applications and a focus day for each theme, so one lost day does not break it.</li></ul></div>';
+  html+='<div class="panel"><span class="label">Outside work</span><h3 style="margin-bottom:10px">Protected, not scored</h3><ul class="ul"><li><b>Painting</b> once a week, any day.</li><li><b>Artist\'s Way</b> at least once a week for the reading and exercises, any day.</li><li>Weekends are rest days. Nothing is owed.</li></ul></div></div>';
+  html+='<div class="panel"><span class="label">Hours</span><p class="muted" style="max-width:64ch">Your 20 to 25 hours is a ceiling, not a schedule. Roughly: an hour of outreach each working day, plus a theme day of 3 to 5 hours on whatever energy allows. The count of messages, applications and focus days is what the week measures.</p></div>';
   return html;
 }
 
 function viewRules(){
-  var html='<div class="panel"><span class="label">How the plan works</span><h2>Sprints inside, contracts outside</h2><div class="steps" style="margin-top:14px">'+
-   '<div><h3>Weeks are sprints</h3><p>Each week has counts, not fixed times. Log them on the board. Move the blocks wherever the day allows.</p></div>'+
-   '<div><h3>Months are the contract</h3><p>The last working day of each month has one deliverable per track. These are the hard dates.</p></div>'+
-   '<div><h3>Slips are allowed, and visible</h3><p>Move a close once with a reason. The second move cuts scope. After that, drop it or hand it off.</p></div></div></div>';
-  html+='<div class="cols"><div class="panel"><span class="label">Full week or floor week</span><h3 style="margin-bottom:10px">Pick on Sunday, 15 minutes</h3><ul class="ul"><li><b>Full week:</b> every Priority 1 target, 3 Tier 2 pool sessions, painting, skills lab.</li><li><b>Floor week:</b> 4 applications, 25 messages, 1 Nespresso session, painting, skills lab. Everything else pauses without penalty.</li><li>Thanksgiving week and the two holiday weeks start as floor weeks. Switch any week on the board.</li><li>Week 1 (Nov 13 to 15) is a launch week: only outreach has a target, and it is not scored.</li><li>Choosing floor lowers that close\'s automatic targets, and it is counted openly in "floor weeks used".</li></ul></div>';
-  html+='<div class="panel"><span class="label">Tier 2 pool</span><h3 style="margin-bottom:10px">Three sessions, split as the week allows</h3><ul class="ul"><li>New product, publication and creative exercise share the pool. Put two on the one that matters most that week.</li><li>Month closes keep each from starving.</li><li>Pool sessions never make up for a missed Priority 1 count.</li><li>Painting and skills lab sit outside the pool and count toward the floor.</li></ul></div>';
-  html+='<div class="panel"><span class="label">Friday close, 20 minutes</span><h3 style="margin-bottom:10px">Log, check, copy</h3><ul class="ul"><li>Log the week\'s counts on the board.</li><li>Check Closes for anything inside 7 days.</li><li>Copy the scorecard if you want a witness. Skip it if not.</li><li>Back up from the Backup tab if you use the phone app.</li></ul></div></div>';
-  html+='<div class="cols"><div class="panel"><span class="label">Fixed edges</span><ul class="ul"><li>Outreach before applying. Never Easy Apply, always the company site.</li><li>Application cap is 15 a week. Outreach cap is 10 people a day.</li><li>One close per track per month, last working day.</li></ul></div>';
-  html+='<div class="panel"><span class="label">Not included yet</span><p class="muted">Locking Tier 2 until Tier 1 is met, and a real reward or cost, are left out on purpose. Add them after two or three weeks of data if the slip log alone is not enough pressure.</p></div></div>';
+  var html='<div class="panel"><span class="label">How the plan works</span><h2>Days have themes, months are the contract</h2><div class="steps" style="margin-top:14px">'+
+   '<div><h3>Days have themes</h3><p>Monday and Wednesday Job search, Tuesday Nespresso, Thursday Portfolio, Friday catch-up or dealer\'s choice. No clock times, nothing to move.</p></div>'+
+   '<div><h3>A tiny daily minimum</h3><p>5 outreach messages right after breakfast keeps momentum, even on a bad day. The rest of the 10 can come any time.</p></div>'+
+   '<div><h3>Months are the contract</h3><p>The last working day of each month has a small set of deliverables. Slips are allowed once, and visible.</p></div></div></div>';
+  html+='<div class="cols"><div class="panel"><span class="label">The week\'s bar</span><h3 style="margin-bottom:10px">Counts, not hours</h3><ul class="ul"><li>Outreach: about 10 a working day, so 50 in a full week.</li><li>Applications: about 1 a working day, so 5 in a full week. Hard cap of 15.</li><li>Focus days: Monday to Thursday each get done, and a Friday catch-up counts too.</li><li>Holiday weeks scale down on their own.</li></ul></div>';
+  html+='<div class="panel"><span class="label">Friday</span><h3 style="margin-bottom:10px">Catch up first, then choose</h3><ul class="ul"><li>Until '+md(DEALER_FROM)+', Friday is catch-up for a lost day or a push on the main three.</li><li>After that, if nothing is owed, pick anything: the main three or Skills lab, Creative exercise, Publication, New product.</li><li>One pick per Friday keeps it focused.</li></ul></div>';
+  html+='<div class="panel"><span class="label">Slips</span><h3 style="margin-bottom:10px">Move once, then cut scope</h3><ul class="ul"><li>A close can move once with a reason, up to 21 days.</li><li>The second move needs a smaller version of the deliverable.</li><li>After that, drop it or hand it off.</li><li>Checkpoints are soft and move freely.</li></ul></div></div>';
+  html+='<div class="cols"><div class="panel"><span class="label">Fixed edges</span><ul class="ul"><li>Outreach before applying. Never Easy Apply, always the company site.</li><li>Application cap is 15 a week. Outreach cap is 10 new people a day.</li><li>Weekends are rest days.</li><li>A 3pm check-in every day to touch base and replan. It is on your calendar with a reminder.</li></ul></div>';
+  html+='<div class="panel"><span class="label">Paused on purpose</span><p class="muted">Deck waits for the portfolio edits. New product, Publication, Creative exercise and Skills lab are Friday options with no closes. Rewards, locks and streak penalties are left out. Add them after two or three weeks of data if the slip log alone is not enough.</p></div></div>';
   return html;
 }
 
+/* ---------- track pages ---------- */
+function focusCount(key,i){return weekDays(i).filter(function(d){return dayRec(d).d&&focusKey(d)===key;}).length;}
+var PIPE=['Researching','Outreach sent','Applied','Follow up','Replied'];
 function viewTrack(key){
   var t=TBY[key];if(!t)return '';
   var items=MILESTONES.filter(function(m){return m.track===key;}).sort(function(a,b){return curDate(a).localeCompare(curDate(b));});
   var extra=(S.extra[key]||[]).map(function(x){return {id:x.id,track:key,date:x.d||'',title:x.t,x:1,done:!!x.done};});
   var left=S.left[key]||{text:'',at:''},links=S.links[key]||[];
-  var html='<div class="pagehead tint t-'+t.type+'"><span class="label" style="color:inherit">Priority '+t.tier+(t.protected?', protected':'')+'</span><h1>'+esc(t.name)+'</h1><p>'+esc(t.blurb)+'</p></div>';
+  var html='<div class="pagehead tint t-'+t.type+'"><span class="label" style="color:inherit">'+esc(GROUPS.filter(function(g){return g.k===t.group;})[0].n)+'</span><h1>'+esc(t.name)+'</h1><p>'+esc(t.blurb)+'</p></div>';
   html+='<div class="cols t-'+t.type+'"><div class="stack">';
-  html+='<div class="panel"><span class="label">Cadence</span><ul class="ul">';
-  if(t.tier===1||t.protected){
-    html+='<li>Full week: '+(Array.isArray(t.full)&&t.floor===0?'1 session in active weeks, none otherwise':(function(v,u){return v+' '+(u==='sessions'&&v===1?'session':u);})(Array.isArray(t.full)?t.full[1]:t.full,t.unit))+'. Floor week: '+(function(v,u){return v+' '+(u==='sessions'&&v===1?'session':u);})(t.floor,t.unit)+'.</li>';
-  }else html+='<li>Draws on the Tier 2 pool: 3 sessions a week in a full week, 0 in a floor week.</li>';
-  html+='<li>Time: '+esc(t.hours)+' a week.</li></ul><span class="label" style="display:block;margin:16px 0 8px">How it runs</span><ul class="ul">'+t.how.map(function(w){return '<li>'+esc(w)+'</li>';}).join('')+'</ul></div>';
-  html+='<div class="panel"><span class="label">Deliverables</span><div class="list">'+items.map(function(m){return dRow(m);}).join('')+'</div>';
+  html+='<div class="panel"><span class="label">Cadence</span><ul class="ul"><li>'+esc(t.cadence)+'</li></ul><span class="label" style="display:block;margin:16px 0 8px">How it runs</span><ul class="ul">'+t.how.map(function(w){return '<li>'+esc(w)+'</li>';}).join('')+'</ul></div>';
+  html+='<div class="panel"><span class="label">Deliverables</span><div class="list">'+(items.length?items.map(function(m){return dRow(m);}).join(''):'<div class="empty">No dated deliverables. Add a task below if you want one.</div>')+'</div>';
   if(extra.length)html+='<div class="list" style="margin-top:6px">'+extra.map(function(x){return '<div class="item'+(x.done?' done':'')+'"><input type="checkbox" data-a="xtoggle" data-p="'+key+'" data-id="'+x.id+'"'+(x.done?' checked':'')+' aria-label="Mark done"><div><div class="t">'+esc(x.title)+'</div></div><div class="when">'+(x.date?md(parse(x.date)):'')+'</div></div>';}).join('')+'</div>';
   html+='<form class="form" data-form="task" data-p="'+key+'" style="margin-top:12px"><input type="text" name="t" placeholder="Add a task" aria-label="Task" required><input type="date" name="d" aria-label="Due date"><button class="btn" type="submit">Add</button></form></div>';
   html+='<div class="panel"><span class="label">Week by week</span><div class="pace">';
   for(var i=0;i<WEEKS;i++){
-    var have=n(i,key),tg=(t.tier===1||t.protected)?target(key,i):null;
-    var cls=(i===curWeek?'on ':'')+(tg!=null&&weekOver(i)?(have>=tg?'hit ':'miss '):'')+(modeOf(i)==='floor'?'fl':'');
-    html+='<div class="'+cls+'"><span class="w">W'+(i+1)+' '+wlabel(i)+'</span><b>'+have+(tg!=null?'<span class="muted" style="font-size:12px;font-family:var(--body);font-weight:400"> / '+tg+'</span>':'')+'</b></div>';
+    var cls=(i===weekOf(today())?'on ':''),val='',sub='';
+    if(key==='job'){var r=weekResult(i);cls+=(r.over?(r.o>=r.ob&&r.a>=r.ab?'hit ':'miss '):'');val=r.o+' / '+r.a;sub='';}
+    else if(key==='painting'||key==='aw'){var fl=weekFlag(i,key==='painting'?'paint':'aw');cls+=fl?'hit ':(weekOver(i)?'miss ':'');val=fl?'&#10003;':'';}
+    else{var c=focusCount(key,i);val=c?String(c):'';}
+    html+='<div class="'+cls+'"><span class="w">'+md(weekStart(i))+'</span><b>'+val+'</b></div>';
   }
-  html+='</div><p class="muted" style="font-size:12.5px;margin-top:8px">Dashed border: floor week. Log counts on the Board.</p></div>';
+  html+='</div><p class="muted" style="font-size:12.5px;margin-top:8px">'+(key==='job'?'Outreach messages / applications each week, against 50 / 5.':(key==='painting'||key==='aw'?'A tick means done that week. Tick it on Today.':'Days spent on this, from the daily focus on Today.'))+'</p></div>';
   html+='</div><div class="stack">';
   html+='<div class="panel"><span class="label">Where I left off'+(left.at?', '+esc(left.at):'')+'</span><textarea class="lined" id="left-'+key+'" data-note="left" data-p="'+key+'" rows="2" placeholder="Two lines for the next session" style="min-height:62px">'+esc(left.text)+'</textarea></div>';
-  html+='<div class="panel"><span class="label">Notebook</span><textarea class="lined" id="notes-'+key+'" data-note="notes" data-p="'+key+'" rows="9" placeholder="'+(key==='skills'?'Idea bank: 10 post ideas, each tagged interaction or physical':'Notes, decisions, things to try')+'">'+esc(S.notes[key]||'')+'</textarea></div>';
+  html+='<div class="panel"><span class="label">Notebook</span><textarea class="lined" id="notes-'+key+'" data-note="notes" data-p="'+key+'" rows="9" placeholder="'+(key==='posts'?'Idea bank: 10 post ideas, each tagged interaction or physical':'Notes, decisions, things to try')+'">'+esc(S.notes[key]||'')+'</textarea></div>';
   html+='<div class="panel"><span class="label">Working folder links</span><div>'+(links.length?links.map(function(l,i){return '<div class="linkrow"><a href="'+esc(l.u)+'" target="_blank" rel="noopener">'+esc(l.l||l.u)+'</a><button class="x" data-a="dellink" data-p="'+key+'" data-i="'+i+'" aria-label="Remove link">&times;</button></div>';}).join(''):'<div class="empty">No links yet.</div>')+'</div><form class="form" data-form="link" data-p="'+key+'" style="margin-top:10px"><input type="text" name="l" placeholder="Label" aria-label="Label"><input type="url" name="u" placeholder="https://" aria-label="Link" required style="flex:1 1 160px;width:auto"><button class="btn" type="submit">Add</button></form></div>';
-  if(key==='apps'||key==='outreach'){
+  if(key==='job'){
     html+='<div class="panel"><span class="label">Pipeline</span><form class="form" data-form="pipe"><input type="text" name="c" placeholder="Company" aria-label="Company" required><button class="btn" type="submit">Add</button></form><div class="list" style="margin-top:10px">'+(S.pipeline.length?S.pipeline.map(function(r,i){return '<div class="item"><span class="ph"></span><div><div class="t">'+esc(r.c)+'</div></div><div class="when"><button class="chipbtn" data-a="pipecycle" data-i="'+i+'">'+esc(PIPE[r.s||0])+'</button> <button class="x" data-a="pipedel" data-i="'+i+'" aria-label="Remove">&times;</button></div></div>';}).join(''):'<div class="empty">No companies yet.</div>')+'</div></div>';
   }
   html+='</div></div>';
   return html;
 }
-var PIPE=['Researching','Outreach sent','Applied','Follow up','Replied'];
 
 var armed=false,backupMsg='';
 function viewBackup(){
@@ -726,14 +726,14 @@ function viewBackup(){
 }
 
 /* ---------- routing and shell ---------- */
-var ROUTES=[{k:'board',n:'Board',g:'Plan'},{k:'closes',n:'Closes',g:'Plan'},{k:'calendar',n:'Calendar',g:'Plan'},{k:'rules',n:'Rules',g:'Plan'},{k:'backup',n:'Backup',g:'Plan'}];
-TRACKS.forEach(function(t){ROUTES.push({k:t.key,n:t.name,g:'Priority '+t.tier,type:t.type});});
-function readHash(){var h=(location.hash||'').replace('#','');if(!h){try{h=localStorage.getItem(LS+'-route')||'';}catch(e){}}return ROUTES.some(function(r){return r.k===h;})?h:'board';}
+var ROUTES=[{k:'today',n:'Today',g:'Plan'},{k:'closes',n:'Closes',g:'Plan'},{k:'week',n:'The week',g:'Plan'},{k:'rules',n:'Rules',g:'Plan'},{k:'backup',n:'Backup',g:'Plan'}];
+GROUPS.forEach(function(g){TRACKS.filter(function(t){return t.group===g.k;}).forEach(function(t){ROUTES.push({k:t.key,n:t.name,g:g.n,type:t.type});});});
+function readHash(){var h=(location.hash||'').replace('#','');if(!h){try{h=localStorage.getItem(LS+'-route')||'';}catch(e){}}if(h==='board')h='today';if(h==='calendar')h='week';return ROUTES.some(function(r){return r.k===h;})?h:'today';}
 function renderTabs(){
   var open={};MILESTONES.forEach(function(m){if(m.hard&&!isDone(m)&&!isDropped(m)&&parse(curDate(m))<=parse(CLOSES[nextClose().i]))open[m.track]=(open[m.track]||0)+1;});
   var html='',g='';
   ROUTES.forEach(function(r){
-    if(r.g!==g){g=r.g;html+='<span class="label grp">'+g+'</span>';}
+    if(r.g!==g){g=r.g;html+='<span class="label grp">'+esc(g)+'</span>';}
     html+='<a href="#'+r.k+'" class="'+(r.type?'t-'+r.type+' ':'')+(r.k===route?'on':'')+'"'+(r.k===route?' aria-current="page"':'')+'>'+(r.type?'<span class="sw"></span>':'')+esc(r.n)+(r.type&&open[r.k]?'<span class="cnt">'+open[r.k]+'</span>':'')+'</a>';
   });
   document.getElementById('tabs').innerHTML=html;
@@ -741,15 +741,15 @@ function renderTabs(){
 function renderPulse(){
   var t=today(),el=document.getElementById('whereami'),txt;
   var nc=nextClose(),cd=daysTo(parse(CLOSES[nc.i]));
-  if(t<LAUNCH){var k=Math.round((LAUNCH-t)/864e5);txt='The plan starts Friday, Nov 13, in '+k+' day'+(k===1?'':'s')+'.';}
+  if(t<LAUNCH){txt='The plan starts '+dlong(LAUNCH)+'.';}
   else if(t>addDays(weekStart(WEEKS-1),6)){txt='The plan ended Sunday, Jan 31.';}
-  else{txt='Week '+(weekOf(t)+1)+' of '+WEEKS+(isLaunch(weekOf(t))?' (launch week)':'')+'. Today is '+dlong(t)+'. '+CLOSE_NAME[nc.i]+(cd>=0?' in '+cd+' day'+(cd===1?'':'s'):'')+'.';}
+  else{var th=themeOf(t),fk=focusKey(t);txt='Week '+(weekOf(t)+1)+' of '+WEEKS+'. Today is '+dlong(t)+(th?(th==='choice'?(fk?'. Focus: '+fname(fk):(t>=DEALER_FROM?". Dealer's choice":'. Catch-up day')):'. Focus: '+fname(th)):'. Rest day')+'. '+CLOSE_NAME[nc.i]+(cd>=0?' in '+cd+' day'+(cd===1?'':'s'):'')+'.';}
   el.textContent=txt;
 }
 function render(){
   route=readHash();
   var m=document.getElementById('main');var v;
-  if(route==='board')v=viewBoard();else if(route==='closes')v=viewCloses();else if(route==='calendar')v=viewCalendar();else if(route==='rules')v=viewRules();else if(route==='backup')v=viewBackup();else v=viewTrack(route);
+  if(route==='today')v=viewToday();else if(route==='closes')v=viewCloses();else if(route==='week')v=viewWeek();else if(route==='rules')v=viewRules();else if(route==='backup')v=viewBackup();else v=viewTrack(route);
   m.innerHTML=backupBanner()+v;renderTabs();renderPulse();try{localStorage.setItem(LS+'-route',route);}catch(e){}
 }
 
@@ -761,15 +761,17 @@ function copyText(id,msgId,after){
   var fb=function(){try{ta.focus();ta.select();if(msg)msg.textContent='Selected. Copy it from the box.';}catch(e){}};
   try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(ta.value).then(ok,fb);}else fb();}catch(e){fb();}
 }
+function dayObj(d){var k=iso(d);return S.days[k]=S.days[k]||{};}
 document.addEventListener('click',function(e){
   var el=e.target.closest('[data-a]');if(!el)return;var a=el.dataset.a;
-  if(a==='toggle')return;
-  if(a==='week'){curWeek=+el.dataset.i;slipOpen=null;render();}
-  else if(a==='mode'){var k=iso(weekStart(curWeek));S.mode[k]=el.dataset.m;touch();render();}
-  else if(a==='bump'){var key=el.dataset.k,k2=iso(weekStart(curWeek));var lg=S.log[k2]=S.log[k2]||{};var cap=TBY[key].cap||30;lg[key]=Math.max(0,Math.min(cap,(lg[key]||0)+(+el.dataset.dir)));touch();render();}
+  if(a==='toggle'||a==='wkflag')return;
+  if(a==='day'){curDay=parse(el.dataset.d);slipOpen=null;render();}
+  else if(a==='wk'){curDay=addDays(dayNow(),7*(+el.dataset.dir));slipOpen=null;render();}
+  else if(a==='bump'){var o=dayObj(dayNow()),k=el.dataset.k,cap=k==='o'?100:15;o[k]=Math.max(0,Math.min(cap,(o[k]||0)+(+el.dataset.dir)));touch();render();}
+  else if(a==='focus'){var o2=dayObj(dayNow());o2.d=o2.d?0:1;touch();render();}
+  else if(a==='choice'){var o3=dayObj(dayNow());o3.c=(o3.c===el.dataset.k)?'':el.dataset.k;touch();render();}
   else if(a==='slip'){slipOpen=el.dataset.id;render();}
   else if(a==='slipcancel'){slipOpen=null;render();}
-  else if(a==='copyscore'){copyText('score','smsg');}
   else if(a==='dellink'){var arr=S.links[el.dataset.p]||[];arr.splice(+el.dataset.i,1);S.links[el.dataset.p]=arr;touch();render();}
   else if(a==='pipecycle'){var r=S.pipeline[+el.dataset.i];r.s=((r.s||0)+1)%PIPE.length;touch();render();}
   else if(a==='pipedel'){S.pipeline.splice(+el.dataset.i,1);touch();render();}
@@ -787,6 +789,7 @@ document.addEventListener('change',function(e){
   var el=e.target;if(!el.dataset)return;
   if(el.dataset.a==='toggle'){S.done[el.dataset.id]=el.checked;touch();render();}
   else if(el.dataset.a==='xtoggle'){var arr=S.extra[el.dataset.p]||[];arr.forEach(function(x){if(x.id===el.dataset.id)x.done=el.checked;});touch();render();}
+  else if(el.dataset.a==='wkflag'){var wk=iso(weekStart(weekOf(dayNow())));var w=S.wk[wk]=S.wk[wk]||{};w[el.dataset.k]=el.checked;touch();render();}
 });
 document.addEventListener('submit',function(e){
   var f=e.target.closest('form[data-form]');if(!f)return;e.preventDefault();

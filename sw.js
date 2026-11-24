@@ -1,5 +1,5 @@
 /* Operating Plan offline cache. Bump VERSION when you replace index.html. */
-var VERSION = 'term-binder-v9';
+var VERSION = 'term-binder-v11';
 var SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
 
 self.addEventListener('install', function (e) {
